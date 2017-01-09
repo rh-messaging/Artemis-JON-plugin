@@ -365,627 +365,687 @@
             classLoader="instance"
             description="ActiveMQ Artemis Broker" createDeletePolicy="neither">
 
-   <runs-inside>
-      <parent-resource-type name="ActiveMQ Artemis Server" plugin="Artemis"/>
-      <parent-resource-type name="JMX Server" plugin="JMX"/>
-   </runs-inside>
-
-   <plugin-configuration>
-
-      <c:simple-property name="Version" readOnly="true" required="false" description="Broker Version" />
-      <c:simple-property name="objectName" readOnly="true" default="org.apache.activemq.artemis:type=Broker,brokerName=%brokerName%,serviceType=Broker"/>
-      <c:simple-property name="nameTemplate" readOnly="true" default="{brokerName} Broker {BrokerVersion}"/>
-      <c:simple-property name="descriptionTemplate" readOnly="true" default="ActiveMQ Artemis Broker {brokerName}"/>
-      <c:simple-property name="brokerName" readOnly="true" description="Broker Name" default=""/>
-
-   </plugin-configuration>
-
-   <operation name="start" displayName="start" description="Starts the Broker"/>
-   <operation name="stop" displayName="start" description="Stops the Broker and all its components"/>
-   <operation name="createAddress" displayName="Create Address" description="create an address">
-      <parameters>
-         <c:simple-property name="name" displayName="name" description="The name of the address" type="string" required="true"/>
-         <c:simple-property name="routingTypes" displayName="routing types" description="Comma separated list of Routing Types (anycast/multicast)" type="string" required="true"/>
-      </parameters>
-      <results>
-         <c:simple-property name="result" displayName="The Address Information" type="string"/>
-      </results>
-   </operation>
-   <operation name="deleteAddress" displayName="delete address" description="delete an address">
-      <parameters>
-         <c:simple-property name="name" displayName="name" description="The name of the address" type="string" required="true"/>
-      </parameters>
-   </operation>
-   <operation name="createQueue" displayName="create queue" description="create a queue">
-      <parameters>
-         <c:simple-property name="address" displayName="address" description="Address of the queue" type="string" required="true" default="address"/>
-         <c:simple-property name="routingType" displayName="routing type" description="The routing type used for this address, MULTICAST or ANYCAST" type="string" default="ANYCAST"/>
-         <c:simple-property name="name" displayName="name" description="Name of the queue" type="string" required="true"/>
-         <c:simple-property name="filter" displayName="filter" description="Filter of the queue" type="string" required="false"/>
-         <c:simple-property name="durable" displayName="durable" description="Is the queue durable?" type="boolean" required="true" default="true"/>
-         <c:simple-property name="maxConsumers" displayName="max consumers" description="The maximum number of consumers allowed on this queue at any one time" type="integer" default="-1"/>
-         <c:simple-property name="deleteOnNoConsumers" displayName="delete when no consumers"  description="Delete this queue when the last consumer disconnects" type="boolean" required="true" default="false"/>
-         <c:simple-property name="autoCreateAddress" displayName="auto create the address if it doesnt exist" description="Create an address with default values should a matching address not be found" type="boolean" default="true"/>
-      </parameters>
-   </operation>
-   <operation name="destroyQueue" displayName="destroy queue" description="Destroys the queue corresponding to the specified name">
-      <parameters>
-         <c:simple-property name="name" displayName="name" description="Name of the queue" type="string" required="true"/>
-         <c:simple-property name="removeConsumers" displayName="remove consumers" description="Remove consumers of this queue" type="boolean" required="true" default="false"/>
-         <c:simple-property name="autoDeleteAddress" displayName="auto delete address" description="utomatically delete the address if this was the last queue" type="boolean" required="true" default="false"/>
-      </parameters>
-   </operation>
-   <operation name="enableMessageCounters" displayName="enable message counters" description="enable message counters"/>
-   <operation name="disableMessageCounters" displayName="disable message counters" description="disable message counters"/>
-   <operation name="resetAllMessageCounters" displayName="reset all message counters" description="reset all message counters"/>
-   <operation name="resetAllMessageCounterHistories" displayName="reset all message counter histories" description="reset all message counter histories"/>
-   <operation name="listPreparedTransactions" displayName="list prepared transactions" description="List all the prepared transaction, sorted by date, oldest first">
-      <results>
-         <c:list-property name="result" displayName="transactions"/>
-      </results>
-   </operation>
-   <operation name="listPreparedTransactionDetailsAsJSON" displayName="list prepared transactions as JSON" description="List all the prepared transaction, sorted by date, oldest first, with details, in JSON format">
-      <results>
-         <c:simple-property name="result" displayName="transactions" type="string"/>
-      </results>
-   </operation>
-   <operation name="listPreparedTransactionDetailsAsHTML" displayName="list prepared transactions as HTML" description="List all the prepared transaction, sorted by date, oldest first, with details, in HTML format">
-      <results>
-         <c:simple-property name="result" displayName="transactions" type="string"/>
-      </results>
-   </operation>
-   <operation name="listHeuristicCommittedTransactions" displayName="list heuristic committed transactions" description="List transactions which have been heuristically committed">
-      <results>
-         <c:list-property name="result" displayName="transactions"/>
-      </results>
-   </operation>
-   <operation name="listHeuristicRolledBackTransactions" displayName="list heuristic rolled back transactions" description="List transactions which have been heuristically rolled back">
-      <results>
-         <c:list-property name="result" displayName="transactions"/>
-      </results>
-   </operation>
-   <operation name="commitPreparedTransaction" displayName="commit prepared transaction" description="Heuristically commits a prepared transaction">
-      <parameters>
-         <c:simple-property name="transactionAsBase64" displayName="the Base64 representation of a transaction" type="string" required="true"/>
-      </parameters>
-      <results>
-         <c:simple-property name="result" displayName="committed"/>
-      </results>
-   </operation>
-   <operation name="rollbackPreparedTransaction" displayName="rollback prepared transaction" description="Heuristically rollback a prepared transaction">
-      <parameters>
-         <c:simple-property name="transactionAsBase64" displayName="the Base64 representation of a transaction" type="string" required="true"/>
-      </parameters>
-      <results>
-         <c:simple-property name="result" displayName="rolled back"/>
-      </results>
-   </operation>
-   <operation name="listRemoteAddresses" displayName="List Remote Addresses" description="List all remote addresses connected to HornetQ.">
-      <results>
-         <c:list-property name="result">
-            <c:map-property required="false" name="element">
-               <c:simple-property type="string" name="value"/>
-            </c:map-property>
-         </c:list-property>
-      </results>
-   </operation>
-   <operation name="listRemoteAddresses2,operation=listRemoteAddresses" displayName="List Remote Addresses" description="List all remote addresses connected to HornetQ that match an ip address.">
-      <parameters>
-         <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
-      </parameters>
-      <results>
-         <c:list-property name="result">
-            <c:map-property required="false" name="element">
-               <c:simple-property type="string" name="value"/>
-            </c:map-property>
-         </c:list-property>
-      </results>
-   </operation>
-   <operation name="closeConnectionsForAddress" displayName="Close Connection" description="Closes all the connections for the given IP Address.">
-      <parameters>
-         <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
-      </parameters>
-      <results>
-         <c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/>
-      </results>
-   </operation>
-   <operation name="closeConsumerConnectionsForAddress" displayName="close connections for address" description="Closes all the connections of clients connected to this server which matches the specified IP address">
-      <parameters>
-         <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
-      </parameters>
-      <results><c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/></results>
-   </operation>
-   <operation name="closeConnectionsForUser" displayName="close connections for user" description="Closes all the connections of sessions with a matching user name">
-      <parameters>
-         <c:simple-property required="true" name="userName" displayName="a user name"/>
-      </parameters>
-      <results>
-         <c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/>
-      </results>
-   </operation>
-   <operation name="listConnectionIDs" displayName="List connections" description="List all the connection IDs.">
-      <results>
-         <c:list-property name="result">
-            <c:map-property required="false" name="element">
-               <c:simple-property type="string" name="value"/>
-            </c:map-property>
-         </c:list-property>
-      </results>
-   </operation>
-   <operation name="listProducersInfoAsJSON" displayName="list producers as JSON" description="list all the producer info as JSON">
-      <results>
-         <c:simple-property name="result" displayName="producers" type="string"/>
-      </results>
-   </operation>
-   <operation name="listConnectionsAsJSON" displayName="list connections as JSON" description="Lists all the connections connected to this server as JSON">
-      <results>
-         <c:simple-property name="result" displayName="connections" type="string"/>
-      </results>
-   </operation>
-   <operation name="listConsumersAsJSON" displayName="list consumers as JSON" description="list all the consumers info as JSON">
-      <results>
-         <c:simple-property name="result" displayName="consumers" type="string"/>
-      </results>
-   </operation>
-   <operation name="listConsumersAsJSON2,operation==listConsumersAsJSON" displayName="list consumers as JSON" description="list all the consumers for the connection info as JSON">
-      <parameters>
-         <c:simple-property name="connectionID" displayName="connectionID" type="string"/>
-      </parameters>
-      <results>
-         <c:simple-property name="result" displayName="consumers" type="string"/>
-      </results>
-   </operation>
-   <operation name="listAllConsumersAsJSON" displayName="list all consumers as JSON" description="list all the consumer info as JSON">
-      <results>
-         <c:simple-property name="result" displayName="consumers" type="string"/>
-      </results>
-   </operation>
-   <operation name="listSessionsAsJSON" displayName="list sessions as JSON" description="list all the sessions for the connection info as JSON">
-      <parameters>
-         <c:simple-property name="connectionID" displayName="connectionID" type="string"/>
-      </parameters>
-      <results>
-         <c:simple-property name="result" displayName="sessions" type="string"/>
-      </results>
-   </operation>
-   <operation name="listSessions" displayName="List sessions" description="List the sessions for the given connectionID">
-      <parameters>
-         <c:simple-property name="connectionID" displayName="connectionID" type="string"/>
-      </parameters>
-      <results>
-         <c:list-property name="result">
-            <c:map-property required="false" name="element">
-               <c:simple-property type="string" name="value"/>
-            </c:map-property>
-         </c:list-property>
-      </results>
-   </operation>
-   <operation name="addSecuritySettings" displayName="add security settings" description="Add security settings for addresses matching the address">
-      <parameters>
-         <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
-         <c:simple-property name="send" displayName="send" description="a comma-separated list of roles allowed to send messages" type="string" required="true"/>
-         <c:simple-property name="consume" displayName="consume" description="a comma-separated list of roles allowed to consume messages" type="string" required="true"/>
-         <c:simple-property name="createDurableQueueRoles" displayName="create durable queues" description="a comma-separated list of roles allowed to create durable queues" type="string" required="true"/>
-         <c:simple-property name="deleteDurableQueueRoles" displayName="selete durable queues" description="a comma-separated list of roles allowed to delete durable queues" type="string" required="true"/>
-         <c:simple-property name="createNonDurableQueueRoles" displayName="create non durable queues" description="a comma-separated list of roles allowed to create non durable queues" type="string" required="true"/>
-         <c:simple-property name="deleteNonDurableQueueRoles" displayName="delete non durable queues" description="a comma-separated list of roles allowed to delete non durable queues" type="string" required="true"/>
-         <c:simple-property name="manage" displayName="manage" description="a comma-separated list of roles allowed to send management messages messages" type="string" required="true"/>
-         <c:simple-property name="browse" displayName="browse" description="a comma-separated list of roles allowed to browse queues" type="string" required="true"/>
-         <c:simple-property name="createAddressRoles" displayName="create addresses" description="a comma-separated list of roles allowed to create addresses" type="string" required="true"/>
-         <c:simple-property name="deleteAddressRoles" displayName="delete addresses" description="a comma-separated list of roles allowed to delete addresses" type="string" required="true"/>
-      </parameters>
-   </operation>
-   <operation name="removeSecuritySettings" displayName="remove security settings" description="Remove security settings for an address">
-      <parameters>
-         <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
-      </parameters>
-   </operation>
-   <operation name="getRolesAsJSON" displayName="get roles as JSON" description="et roles (as a JSON string) for a specific address match">
-      <parameters>
-         <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
-      </parameters>
-   </operation>
-   <operation name="addAddressSettings" displayName="add address settings" description="Add address settings for addresses matching the address">
-      <parameters>
-         <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
-         <c:simple-property name="DLA" displayName="send" description="the dead letter address setting" type="string" required="false"/>
-         <c:simple-property name="expiryAddress" displayName="consume" description="the expiry address setting" type="string" required="false"/>
-         <c:simple-property name="expiryDelay" displayName="create durable queues" description="the expiry delay setting" type="long" required="false"/>
-         <c:simple-property name="lastValueQueue" displayName="selete durable queues" description="are any queues created for this address a last value queue" type="string" required="false"/>
-         <c:simple-property name="deliveryAttempts" displayName="create non durable queues" description="the delivery attempts" type="integer" required="false"/>
-         <c:simple-property name="maxSizeBytes" displayName="delete non durable queues" description="the max size in bytes" type="long" required="false"/>
-         <c:simple-property name="pageSizeBytes" displayName="manage" description="the page size in bytes" type="long" required="false"/>
-         <c:simple-property name="pageMaxCacheSize" displayName="browse" description="the max number of pages in the soft memory cache" type="string" required="false"/>
-         <c:simple-property name="redeliveryDelay" displayName="create addresses" description="the redelivery delay" type="long" required="false"/>
-         <c:simple-property name="redeliveryMultiplier" displayName="delete addresses" description="the redelivery delay multiplier" type="double" required="true"/><c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="false"/>
-         <c:simple-property name="maxRedeliveryDelay" displayName="address match" description="the maximum redelivery delay" type="long" required="false"/>
-         <c:simple-property name="redistributionDelay" displayName="address match" description="the redistribution delay" type="long" required="false"/>
-         <c:simple-property name="sendToDLAOnNoRoute" displayName="address match" description="do we send to the DLA when there is no where to route the message" type="boolean" required="false"/>
-         <c:simple-property name="addressFullMessagePolicy" displayName="address match" description="the policy to use when the address is full" type="string" required="false"/>
-         <c:simple-property name="slowConsumerThreshold" displayName="address match" description="when a consumer falls below this threshold in terms of messages consumed per second it will be considered 'slow'" type="long" required="false"/>
-         <c:simple-property name="slowConsumerCheckPeriod" displayName="address match" description="how often (in seconds) to check for slow consumers" type="long" required="false"/>
-         <c:simple-property name="slowConsumerPolicy" displayName="address match" description="the policy to use when a slow consumer is detected (PAGE,DROP,BLOCK,FAIL)" type="string" required="false"/>
-         <c:simple-property name="autoCreateJmsQueues" displayName="address match" description="allow jms queues to be created automatically" type="boolean" required="false"/>
-         <c:simple-property name="autoDeleteJmsQueues" displayName="address match" description="allow auto-created jms queues to be deleted automatically" type="boolean" required="false"/>
-         <c:simple-property name="autoCreateJmsTopics" displayName="address match" description="allow jms topics to be created automatically" type="boolean" required="true"/>
-         <c:simple-property name="autoDeleteJmsTopics" displayName="address match" description="allow auto-created jms topics to be deleted automatically" type="boolean" required="false"/>
-         <c:simple-property name="autoCreateQueues" displayName="address match" description="allow queues to be created automatically" type="boolean" required="false"/>
-         <c:simple-property name="autoDeleteQueues" displayName="address match" description="allow auto-created queues to be deleted automatically" type="boolean" required="false"/>
-         <c:simple-property name="autoCreateAddresses" displayName="address match" description="allow addresses to be created automatically" type="boolean" required="false"/>
-         <c:simple-property name="autoDeleteAddresses" displayName="address match" description="allow auto-created addresses to be deleted automatically" type="boolean" required="false"/>
-      </parameters>
-   </operation>
-   <operation name="removeAddressSettings" displayName="remove address settings" description="Remove address settings for an address">
-      <parameters>
-         <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the address settings to remove" type="string" required="true"/>
-      </parameters>
-   </operation>
-   <operation name="getAddressSettingsAsJSON" displayName="list address settings as JSON" description="returns the address settings as a JSON string">
-      <parameters>
-         <c:simple-property name="addressMatch" displayName="an address match" type="string"/>
-      </parameters>
-      <results>
-         <c:simple-property name="result" displayName="address settings" type="string"/>
-      </results>
-   </operation>
-   <operation name="getDivertNames" displayName="list diverts" description="names of the diverts deployed on this server">
-      <results>
-         <c:list-property name="result" displayName="diverts"/>
-      </results>
-   </operation>
-   <operation name="createDivert" displayName="create divert" description="create a divert">
-      <parameters>
-         <c:simple-property name="name" displayName="name" description="Name of the divert" type="string" required="true"/>
-         <c:simple-property name="routingName" displayName="routing name" description="Routing name of the divert" type="longString" required="true"/>
-         <c:simple-property name="address" displayName="address" description="Address to divert from" type="string" required="true"/>
-         <c:simple-property name="forwardingAddress" displayName="forwarding address" description="Address to divert to" type="string" required="true"/>
-         <c:simple-property name="exclusive" displayName="exclusive" description="Is the divert exclusive?" type="boolean" required="false" default="false"/>
-         <c:simple-property name="filterString" displayName="filter string" description="Filter of the divert" type="string" required="false"/>
-         <c:simple-property name="transformerClassName" displayName="transformer class name" description="Class name of the divert's transformer" type="string" required="false"/>
-         <c:simple-property name="routingType" displayName="routing type" description="How should the routing-type on the diverted messages be set (MULTICAST,ANYCAST,STRIP,PASS)?" type="string" required="false"/>
-      </parameters>
-   </operation>
-   <operation name="destroyDivert" displayName="Destroy Divert" description="Destroy a Divert">
-      <parameters>
-         <c:simple-property name="addressMatch" displayName="name" description="Name of the divert" type="string" required="true"/>
-      </parameters>
-   </operation>
-   <operation name="getBridgeNames" displayName="get bridge names" description="names of the bridges deployed on this server">
-      <results>
-         <c:list-property name="result" displayName="transactions"/>
-      </results>
-   </operation>
-   <operation name="createBridge" displayName="create bridge" description="Create a Bridge">
-      <parameters>
-         <c:simple-property name="name" displayName="name" description="Name of the bridge" type="string" required="true"/>
-         <c:simple-property name="queueName" displayName="queue name" description="Name of the source queue" type="string" required="true"/>
-         <c:simple-property name="forwardingAddress" displayName="forwarding address" description="Forwarding address" type="string" required="true"/>
-         <c:simple-property name="filterString" displayName="filter string" description="Filter of the brdige" type="string" required="false"/>
-         <c:simple-property name="transformerClassName" displayName="transformer classname" description="Class name of the bridge transformer" type="string" required="false"/>
-         <c:simple-property name="retryInterval" displayName="retry interval" description="Connection retry interval" type="long" required="true" default="2000" units="epoch_milliseconds"/>
-         <c:simple-property name="retryIntervalMultiplier" displayName="retry interval multiplier" description="Connection retry interval multiplier" type="double" required="true" default="1"/>
-         <c:simple-property name="initialConnectAttempts" displayName="initial connect attempts" description="Number of initial connection attempts" type="integer" required="true" default="-1"/>
-         <c:simple-property name="reconnectAttempts" displayName="reconnect attempts" description="Number of reconnection attempts" type="integer" required="true" default="-1"/>
-         <c:simple-property name="useDuplicateDetection" displayName="use duplicate detection" description="Use duplicate detection" type="boolean" required="true" default="true"/>
-         <c:simple-property name="confirmationWindowSize" displayName="confiirmation window size" description="Confirmation window size" type="integer" required="true" default="-1"/>
-         <c:simple-property name="producerWindowSize" displayName="producer window size" description="Producer window size" type="integer" required="true" default="-1"/>
-         <c:simple-property name="clientFailureCheckPeriod" displayName="client failure check period" description="Period to check client failure" type="long" required="true" default="30000" units="epoch_milliseconds"/>
-         <c:simple-property name="staticConnectorNames" displayName="static connector names" description="comma separated list of connector names or name of discovery group if 'useDiscoveryGroup' is set to true" type="string" required="false"/>
-         <c:simple-property name="useDiscoveryGroup" displayName="use discovery group" description="use discovery  group" type="boolean" required="true" default="false"/>
-         <c:simple-property name="ha" displayName="support HA" description="Is it using High Availibilty" type="boolean" required="true" default="false"/>
-         <c:simple-property name="user" displayName="user" description="User name" type="string" required="false"/>
-         <c:simple-property name="password" displayName="password" description="User password" type="string" required="false"/>
-      </parameters>
-   </operation>
-   <operation name="destroyBridge" displayName="Destroy Bridge" description="Destroy a Bridge">
-      <parameters>
-         <c:simple-property name="name" displayName="name" description="Name of the bridge" type="string" required="true"/>
-      </parameters>
-   </operation>
-   <operation name="createConnectorService" displayName="create connector service">
-      <parameters>
-         <c:simple-property name="name" displayName="name" description="name of the connector service" type="string" required="true"/>
-         <c:simple-property name="factory class" displayName="factory class" description="Class name of the connector service factory" type="string" required="true"/>
-         <c:map-property name="parameters" required="true" displayName="parameters" description="the parameters as a map for the connector"/>
-      </parameters>
-   </operation>
-   <operation name="destroyConnectorService" displayName="Destroy connector service" description="Destroy a connector service">
-      <parameters>
-         <c:simple-property name="name" displayName="name" description="Name of the service" type="string" required="true"/>
-      </parameters>
-   </operation>
-   <operation name="getConnectorServices" displayName="get connector services" description="names of the connector services on this server">
-      <results>
-         <c:list-property name="result" displayName="connector services"/>
-      </results>
-   </operation>
-   <operation name="forceFailover" displayName="force failover" description="force the server to failover"/>
-   <operation name="scaleDown" displayName="scale down" description="scale down the server to another server">
-      <parameters>
-         <c:simple-property name="name" displayName="connector name" description="The connector to use to scale down, if not provided the first appropriate connector will be used" required="false"/>
-      </parameters>
-   </operation>
-   <operation name="listNetworkTopology" displayName="list network topology" description="list the topology of the clustered network">
-      <results>
-         <c:simple-property name="result" displayName="topology" type="string"/>
-      </results>
-   </operation>
-   <operation name="getAddressInfo" displayName="get address info" description="Get information on the selected address">
-      <parameters>
-         <c:simple-property name="address" displayName="address" description="the addresss name" type="string" required="true"/>
-      </parameters>
-      <results>
-         <c:simple-property name="result" displayName="topology" type="string"/>
-      </results>
-   </operation>
-   <operation name="listBindingsForAddress" displayName="get bindings for address" description="Get a list of bindings associated with an address">
-      <parameters>
-         <c:simple-property name="address" displayName="address" description="the address name" type="string" required="true"/>
-      </parameters>
-      <results>
-         <c:simple-property name="result" displayName="bindings" type="string"/>
-      </results>
-   </operation>
-   <operation name="listAddresses" displayName="List Addresses" description="List Addresses on the broker">
-      <results>
-         <c:simple-property name="result" displayName="addresses" type="string"/>
-      </results>
-   </operation>
-
-   <metric property="ConnectionCount" displayType="summary" description="number of clients connected to this server."/>
-   <metric property="TotalConnectionCount" displayType="summary" description="number of clients which have connected to this server since it was started."/>
-   <metric property="TotalMessageCount" displayType="summary" description="number of messages in all queues on the server"/>
-   <metric property="TotalMessagesAdded" displayType="summary" description="number of messages sent to this server since it was started"/>
-   <metric property="TotalMessagesAcknowledged" displayType="summary" description="number of messages acknowledged from all the queues on this server since it was started"/>
-   <metric property="TotalConsumerCount" displayType="summary" description="number of consumers consuming messages from all the queues on this server"/>
-
-   <resource-configuration>
-      <c:group name="ArtemisCustomProperties" displayName="Broker Options">
-         <c:simple-property name="Started" readOnly="true" description="whether this server is started"/>
-         <c:simple-property name="IncomingInterceptorClassNames" readOnly="true" description="list of interceptors used by this server for incoming messages"/>
-         <c:simple-property name="OutgoingInterceptorClassNames" readOnly="true" description="list of interceptors used by this server for outgoing messages"/>
-         <c:simple-property name="Clustered" readOnly="true" description="whether this server is clustered"/>
-         <c:simple-property name="ScheduledThreadPoolMaxSize"  readOnly="true" description="maximum number of threads in the scheduled thread pool"/>
-         <c:simple-property name="ThreadPoolMaxSize"  readOnly="true" description="maximum number of threads in the thread pool"/>
-         <c:simple-property name="SecurityInvalidationInterval"  readOnly="true" description="interval time (in milliseconds/> to invalidate security credentials"/>
-         <c:simple-property name="SecurityEnabled"  readOnly="true" description="whether security is enabled for this server"/>
-         <c:simple-property name="BindingsDirectory"  readOnly="true" description="file system directory used to store bindings"/>
-         <c:simple-property name="JournalDirectory"  readOnly="true" description="file system directory used to store journal log"/>
-         <c:simple-property name="JournalType"  readOnly="true" description="type of journal used by this server"/>
-         <c:simple-property name="JournalSyncTransactional"  readOnly="true" description="whether the journal is synchronized when receiving transactional data"/>
-         <c:simple-property name="JournalSyncNonTransactional"  readOnly="true" description="whether the journal is synchronized when receiving non-transactional datar"/>
-         <c:simple-property name="JournalFileSize"  readOnly="true" description="size (in bytes) of each journal files"/>
-         <c:simple-property name="JournalMinFiles"  readOnly="true" description="number of journal files to pre-create"/>
-         <c:simple-property name="JournalMaxIO"  readOnly="true" description="maximum number of write requests that can be in the AIO queue at any given time"/>
-         <c:simple-property name="JournalBufferSize"  readOnly="true" description="size of the internal buffer on the journal"/>
-         <c:simple-property name="JournalBufferTimeout"  readOnly="true" description="timeout (in nanoseconds) used to flush internal buffers on the journal"/>
-         <c:simple-property name="FailoverOnServerShutdown"  readOnly="true" description="if clients failover on a server shutdown" />
-         <c:simple-property name="JournalCompactMinFiles"  readOnly="true" description="minimal number of journal files before compacting"/>
-         <c:simple-property name="JournalCompactPercentage"  readOnly="true" description="percentage of live data before compacting the journal"/>
-         <c:simple-property name="PersistenceEnabled"  readOnly="true" description="whether this server is using persistence and store data"/>
-         <c:simple-property name="CreateBindingsDir"  readOnly="true" description="whether the bindings directory is created on this server startu"/>
-         <c:simple-property name="CreateJournalDir"  readOnly="true" description="whether the journal directory is created on this server startup"/>
-         <c:simple-property name="MessageCounterEnabled"  readOnly="true" description="whether message counter is enabled for this server"/>
-         <c:simple-property name="MessageCounterMaxDayCount"  readOnly="true" description="maximum number of days kept in memory for message counter"/>
-         <c:simple-property name="MessageCounterSamplePeriod"  readOnly="true" description="sample period (in milliseconds) to take message counter snapshot"/>
-         <c:simple-property name="Backup"  readOnly="true" description="whether this server is a backup"/>
-         <c:simple-property name="SharedStore"  readOnly="true" description="whether this server shares its data store with a corresponding live or backup serve"/>
-         <c:simple-property name="PagingDirectory"  readOnly="true" description="file system directory used to store paging files"/>
-         <c:simple-property name="PersistDeliveryCountBeforeDelivery"  readOnly="true" description="whether delivery count is persisted before messages are delivered to the consumers"/>
-         <c:simple-property name="ConnectionTTLOverride"  readOnly="true" description="connection time to live"/>
-         <c:simple-property name="ManagementAddress"  readOnly="true" description="management address of this server"/>
-         <c:simple-property name="NodeID"  readOnly="true" description="Node ID of this server"/>
-         <c:simple-property name="ManagementNotificationAddress"  readOnly="true" description="management notification address of this server"/>
-         <c:simple-property name="IDCacheSize"  readOnly="true" description="size of the cache for pre-creating message IDs"/>
-         <c:simple-property name="PersistIDCache"  readOnly="true" description="whether message ID cache is persisted"/>
-         <c:simple-property name="LargeMessagesDirectory"  readOnly="true" description="file system directory used to store large messages"/>
-         <c:simple-property name="WildcardRoutingEnabled"  readOnly="true" description="whether wildcard routing is supported by this server"/>
-         <c:simple-property name="TransactionTimeout"  readOnly="true" description="timeout (in milliseconds) after which transactions is removed from the resource manager after it was created"/>
-         <c:simple-property name="TransactionTimeoutScanPeriod"   readOnly="true" description="frequency (in milliseconds) to scan transactions to detect which transactions have timed out"/>
-         <c:simple-property name="MessageExpiryScanPeriod"  readOnly="true" description="frequency (in milliseconds) to scan messages to detect which messages have expired"/>
-         <c:simple-property name="MessageExpiryThreadPriority"  readOnly="true" description="priority of the thread used to scan message expiration"/>
-         <c:simple-property name="AsyncConnectionExecutionEnabled"  readOnly="true" description="whether code coming from connection is executed asynchronously or not"/>
-         <c:simple-property name="Connectors"  readOnly="true" description="connectors configured for this server"/>
-         <c:simple-property name="ConnectorsAsJSON"  readOnly="true" description="connectors configured for this server using JSON serialization"/>
-         <c:simple-property name="AddressNames"  readOnly="true" description="addresses created on this server"/>
-         <c:simple-property name="QueueNames"  readOnly="true" description="names of the queues created on this server"/>
-         <c:simple-property name="Uptime"  readOnly="true" description="uptime of this server" units="epoch_milliseconds"/>
-         <c:simple-property name="UptimeMillis"  readOnly="true" description="uptime of this server in milliseconds"/>
-         <!--this could throw an exception so best ignore for now-->
-         <!--<c:simple-property name="ReplicaSync"  readOnly="true" description="whether the initial replication synchronization process with the backup server is complete"/>-->
-         <c:simple-property name="DiskScanPeriod"  readOnly="true" description="how often to check for disk space usage, in milliseconds" units="epoch_milliseconds"/>
-         <c:simple-property name="MaxDiskUsage"  readOnly="true" description="maximum limit for disk use, in percentage" units="bytes"/>
-         <c:simple-property name="GlobalMaxSize"  readOnly="true" description="global maximum limit for in-memory messages, in bytes" units="bytes"/>
-      </c:group>
-
-   </resource-configuration>
-
-   <!-- Make Acceptor, Address and Queue children of Broker -->
-   <service name="Address" discovery="ArtemisMBeanDiscoveryComponent"
-            class="org.rhq.plugins.jmx.MBeanResourceComponent"
-            description="ActiveMQ Artemis Address">
+      <runs-inside>
+         <parent-resource-type name="ActiveMQ Artemis Server" plugin="Artemis"/>
+         <parent-resource-type name="JMX Server" plugin="JMX"/>
+      </runs-inside>
 
       <plugin-configuration>
-         <c:simple-property name="objectName" readOnly="true"
-                            default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Address,name=%addressName%"/>
-         <c:simple-property name="nameTemplate" readOnly="true"
-                            default="{addressName} Address"/>
-         <c:simple-property name="descriptionTemplate" readOnly="true"
-                            default="ActiveMQ Address {addressName} hosted by Broker {brokerName}"/>
-         <c:simple-property name="addressName" readOnly="true" description="Address Name" default=""/>
-         <c:simple-property name="addressBrokerName" readOnly="true" description="Address Broker Name" default="{brokerName}"/>
+
+         <c:simple-property name="Version" readOnly="true" required="false" description="Broker Version" />
+         <c:simple-property name="objectName" readOnly="true" default="org.apache.activemq.artemis:type=Broker,brokerName=%brokerName%,serviceType=Broker"/>
+         <c:simple-property name="nameTemplate" readOnly="true" default="{brokerName} Broker {BrokerVersion}"/>
+         <c:simple-property name="descriptionTemplate" readOnly="true" default="ActiveMQ Artemis Broker {brokerName}"/>
+         <c:simple-property name="brokerName" readOnly="true" description="Broker Name" default=""/>
+
       </plugin-configuration>
 
-      <operation name="sendMessage" description="Sends a text message to a password protected address">
+      <operation name="start" displayName="start" description="Starts the Broker"/>
+      <operation name="stop" displayName="stop" description="Stops the Broker and all its components"/>
+      <operation name="createAddress" displayName="Create Address" description="create an address">
          <parameters>
-            <c:map-property name="headers" description="The headers to add to the message"/>
-            <c:simple-property name="type" description="A type for the message" type="integer"/>
-            <c:simple-property name="body" description="The body (byte[]) of the messag encoded as a string using Base64" type="string"/>
-            <c:simple-property name="durable" description="Whether the message is durable" type="boolean"/>
-            <c:simple-property name="user" description="The user to authenticate with" type="string"/>
-            <c:simple-property name="password" description="The password to authenticate with" type="string"/>
+            <c:simple-property name="name" displayName="name" description="The name of the address" type="string" required="true"/>
+            <c:simple-property name="routingTypes" displayName="routing types" description="Comma separated list of Routing Types (anycast/multicast)" type="string" required="true"/>
+         </parameters>
+         <results>
+            <c:simple-property name="result" displayName="The Address Information" type="string"/>
+         </results>
+      </operation>
+      <operation name="deleteAddress" displayName="delete address" description="delete an address">
+         <parameters>
+            <c:simple-property name="name" displayName="name" description="The name of the address" type="string" required="true"/>
          </parameters>
       </operation>
-      <operation name="getQueueNames" displayName="get queue names" description="names of the queue(s) bound to this address">
+      <operation name="createQueue" displayName="create queue" description="create a queue">
+         <parameters>
+            <c:simple-property name="address" displayName="address" description="Address of the queue" type="string" required="true" default="address"/>
+            <c:simple-property name="routingType" displayName="routing type" description="The routing type used for this address, MULTICAST or ANYCAST" type="string" default="ANYCAST"/>
+            <c:simple-property name="name" displayName="name" description="Name of the queue" type="string" required="true"/>
+            <c:simple-property name="filter" displayName="filter" description="Filter of the queue" type="string" required="false"/>
+            <c:simple-property name="durable" displayName="durable" description="Is the queue durable?" type="boolean" required="true" default="true"/>
+            <c:simple-property name="maxConsumers" displayName="max consumers" description="The maximum number of consumers allowed on this queue at any one time" type="integer" default="-1"/>
+            <c:simple-property name="deleteOnNoConsumers" displayName="delete when no consumers"  description="Delete this queue when the last consumer disconnects" type="boolean" required="true" default="false"/>
+            <c:simple-property name="autoCreateAddress" displayName="auto create the address if it doesnt exist" description="Create an address with default values should a matching address not be found" type="boolean" default="true"/>
+         </parameters>
+      </operation>
+      <operation name="destroyQueue" displayName="destroy queue" description="Destroys the queue corresponding to the specified name">
+         <parameters>
+            <c:simple-property name="name" displayName="name" description="Name of the queue" type="string" required="true"/>
+            <c:simple-property name="removeConsumers" displayName="remove consumers" description="Remove consumers of this queue" type="boolean" required="true" default="false"/>
+            <c:simple-property name="autoDeleteAddress" displayName="auto delete address" description="utomatically delete the address if this was the last queue" type="boolean" required="true" default="false"/>
+         </parameters>
+      </operation>
+      <operation name="enableMessageCounters" displayName="enable message counters" description="enable message counters"/>
+      <operation name="disableMessageCounters" displayName="disable message counters" description="disable message counters"/>
+      <operation name="resetAllMessageCounters" displayName="reset all message counters" description="reset all message counters"/>
+      <operation name="resetAllMessageCounterHistories" displayName="reset all message counter histories" description="reset all message counter histories"/>
+      <operation name="listPreparedTransactions" displayName="list prepared transactions" description="List all the prepared transaction, sorted by date, oldest first">
          <results>
-            <c:list-property name="QueueNames" displayName="queue names" description="names of the queue(s) bound to this address">
+            <c:list-property name="result" displayName="transactions"/>
+         </results>
+      </operation>
+      <operation name="listPreparedTransactionDetailsAsJSON" displayName="list prepared transactions as JSON" description="List all the prepared transaction, sorted by date, oldest first, with details, in JSON format">
+         <results>
+            <c:simple-property name="result" displayName="transactions" type="string"/>
+         </results>
+      </operation>
+      <operation name="listPreparedTransactionDetailsAsHTML" displayName="list prepared transactions as HTML" description="List all the prepared transaction, sorted by date, oldest first, with details, in HTML format">
+         <results>
+            <c:simple-property name="result" displayName="transactions" type="string"/>
+         </results>
+      </operation>
+      <operation name="listHeuristicCommittedTransactions" displayName="list heuristic committed transactions" description="List transactions which have been heuristically committed">
+         <results>
+            <c:list-property name="result" displayName="transactions"/>
+         </results>
+      </operation>
+      <operation name="listHeuristicRolledBackTransactions" displayName="list heuristic rolled back transactions" description="List transactions which have been heuristically rolled back">
+         <results>
+            <c:list-property name="result" displayName="transactions"/>
+         </results>
+      </operation>
+      <operation name="commitPreparedTransaction" displayName="commit prepared transaction" description="Heuristically commits a prepared transaction">
+         <parameters>
+            <c:simple-property name="transactionAsBase64" displayName="the Base64 representation of a transaction" type="string" required="true"/>
+         </parameters>
+         <results>
+            <c:simple-property name="result" displayName="committed"/>
+         </results>
+      </operation>
+      <operation name="rollbackPreparedTransaction" displayName="rollback prepared transaction" description="Heuristically rollback a prepared transaction">
+         <parameters>
+            <c:simple-property name="transactionAsBase64" displayName="the Base64 representation of a transaction" type="string" required="true"/>
+         </parameters>
+         <results>
+            <c:simple-property name="result" displayName="rolled back"/>
+         </results>
+      </operation>
+      <operation name="listRemoteAddresses" displayName="List Remote Addresses" description="List all remote addresses connected to HornetQ.">
+         <results>
+            <c:list-property name="result">
                <c:map-property required="false" name="element">
                   <c:simple-property type="string" name="value"/>
                </c:map-property>
             </c:list-property>
          </results>
       </operation>
-      <operation name="isPaging" displayName="is paging" description="is this address in paging mode">
+      <operation name="listRemoteAddresses2,operation=listRemoteAddresses" displayName="List Remote Addresses" description="List all remote addresses connected to HornetQ that match an ip address.">
+         <parameters>
+            <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
+         </parameters>
          <results>
-            <c:simple-property name="result" displayName="is paging" type="boolean"/>
-         </results>
-      </operation>
-
-      <metric property="AddressSize" displayName="address size" displayType="summary" description="the number of estimated bytes being used by the queue(s), used to control paging and blocking" measurementType="dynamic"/>
-      <metric property="NumberOfMessages" displayName="number of messages" displayType="summary" description="the sum of messages on queue(s), including messages in delivery" measurementType="dynamic"/>
-      <metric property="NumberOfPages" displayName="number of pages" displayType="summary" description="number of pages used by this address" measurementType="dynamic"/>
-      <metric property="NumberOfBytesPerPage" displayName="bytes per page" displayType="summary" description="number of bytes used by each page for this address" measurementType="dynamic"/>
-      <metric property="MessageCount" displayName="message count" displayType="summary" description="number of messages added to all the queues for this" measurementType="trendsup"/>
-      <!-- Availability is added by default -->
-      <resource-configuration>
-         <c:group name="ArtemisCustomProperties" displayName="Address Options">
-            <c:simple-property name="Address" displayName="address" description="the address name" readOnly="true" type="string"/>
-            <c:simple-property name="DeliveryModesAsJSON" displayName="delivery modes" description="the routing delivery modes this address supports" required="false" readOnly="true" type="string"/>
-            <c:simple-property name="RolesAsJSON" displayName="roles" description="roles  (name and permissions) associated with this address using JSON serialization" required="false" readOnly="true" type="string"/>
-         </c:group>
-      </resource-configuration>
-
-      <service name="Anycast Queue" discovery="ArtemisMBeanDiscoveryComponent"
-               class="org.rhq.plugins.jmx.MBeanResourceComponent"
-               description="ActiveMQ Artemis Anycast Queue">
-
-         <plugin-configuration>
-            <c:simple-property name="objectName" readOnly="true"
-                               default="org.apache.activemq.artemis:type=Broker,brokerName={addressBrokerName},parentType=Address,parentName={addressName},serviceType=Queue, routingType=ANYCAST,name=%queueName%"/>
-            <c:simple-property name="nameTemplate" readOnly="true"
-                               default="{queueName} Anycast Queue on address {addressName}"/>
-            <c:simple-property name="descriptionTemplate" readOnly="true"
-                               default="ActiveMQ Queue {queueName} hosted by Broker {brokerName}"/>
-            <c:simple-property name="queueName" readOnly="true" description="Queue Name" default=""/>
-         </plugin-configuration>
-
-         &destinationOpsAndMetrics;
-
-      </service>
-      <service name="Multicast Queue" discovery="ArtemisMBeanDiscoveryComponent"
-               class="org.rhq.plugins.jmx.MBeanResourceComponent"
-               description="ActiveMQ Artemis Multicast Queue">
-
-         <plugin-configuration>
-            <c:simple-property name="objectName" readOnly="true"
-                               default="org.apache.activemq.artemis:type=Broker,brokerName={addressBrokerName},parentType=Address,parentName={addressName},serviceType=Queue, routingType=MULTICAST,name=%queueName%"/>
-            <c:simple-property name="nameTemplate" readOnly="true"
-                               default="{queueName} Multicast Queue on address {addressName}"/>
-            <c:simple-property name="descriptionTemplate" readOnly="true"
-                               default="ActiveMQ Queue {queueName} hosted by Broker {brokerName}"/>
-            <c:simple-property name="queueName" readOnly="true" description="Queue Name" default=""/>
-         </plugin-configuration>
-
-         &destinationOpsAndMetrics;
-
-      </service>
-   </service>
-   <service name="Acceptor" discovery="ArtemisMBeanDiscoveryComponent"
-            class="org.rhq.plugins.jmx.MBeanResourceComponent"
-            description="ActiveMQ Artemis Acceptor">
-
-      <plugin-configuration>
-         <c:simple-property name="objectName" readOnly="true"
-                            default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Acceptor,name=%acceptorName%"/>
-         <c:simple-property name="nameTemplate" readOnly="true"
-                            default="{acceptorName} Acceptor"/>
-         <c:simple-property name="descriptionTemplate" readOnly="true"
-                            default="ActiveMQ Acceptor {acceptorName} hosted by Broker {brokerName}"/>
-         <c:simple-property name="acceptorName" readOnly="true" description="Acceptor Name" default=""/>
-      </plugin-configuration>
-
-      <operation name="start" description="starts this Acceptor"/>
-      <operation name="stop" description="stops this Acceptor"/>
-      <operation name="reload"
-                 description="Re-create the acceptor with the existing configuration values. Useful, for example, for reloading key/trust stores on acceptors which support SSL"/>
-
-      <!-- Availability is added by default -->
-   </service>
-   <service name="Cluster Connection" discovery="ArtemisMBeanDiscoveryComponent"
-            class="org.rhq.plugins.jmx.MBeanResourceComponent"
-            description="ActiveMQ Artemis Address">
-
-      <plugin-configuration>
-         <c:simple-property name="objectName" readOnly="true"
-                            default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=ClusterConnection,name=%addressName%"/>
-         <c:simple-property name="nameTemplate" readOnly="true"
-                            default="{clusterName} Address"/>
-         <c:simple-property name="descriptionTemplate" readOnly="true"
-                            default="ActiveMQ Cluster Connection {clusterName} hosted by Broker {brokerName}"/>
-         <c:simple-property name="clusterName" readOnly="true" description="Cluster Connection Name" default=""/>
-      </plugin-configuration>
-
-      <operation name="getTopology" displayName="get topology" description="Topology that this Cluster Connection knows about">
-         <results>
-            <c:simple-property name="result" displayName="topology" type="string"/>
-         </results>
-      </operation>
-
-      <resource-configuration>
-         <c:group name="ArtemisCustomProperties" displayName="Cluster Connection Options">
-            <c:simple-property name="Name" displayName="name" description="The name of the cluster connection" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="Address" displayName="address" description="address used by this cluster connection" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="NodeID" displayName="node ID" description="node ID used by this cluster connection" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="DuplicateDetection" displayName="duplicate detection" description="whether this cluster connection use duplicate detection" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="MessageLoadBalancingType" displayName="message load balancing type" description="type of message load balancing strategy this bridge will use" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="MaxHops" displayName="max hops" description="maximum number of hops used by this cluster connection" type="integer" readOnly="false" required="false"/>
-            <c:simple-property name="StaticConnectorsAsJSON" displayName="static connectors" description="list of static connectors as JSON" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="DiscoveryGroupName" displayName="discovery group name" description="name of the discovery group used by this cluster connection" type="string" readOnly="true" required="false"/>
-            <c:simple-property name="RetryInterval" displayName="retry interval" description="connection retry interval used by this cluster connection" type="long" readOnly="true" required="false"/>
-         </c:group>
-      </resource-configuration>
-   </service>
-   <service name="Bridge" discovery="ArtemisMBeanDiscoveryComponent"
-            class="org.rhq.plugins.jmx.MBeanResourceComponent"
-            description="ActiveMQ Artemis Bridge">
-
-      <plugin-configuration>
-         <c:simple-property name="objectName" readOnly="true"
-                            default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=ClusterConnection,name=%addressName%"/>
-         <c:simple-property name="nameTemplate" readOnly="true"
-                            default="{clusterName} Address"/>
-         <c:simple-property name="descriptionTemplate" readOnly="true"
-                            default="ActiveMQ Cluster Connection {clusterName} hosted by Broker {brokerName}"/>
-         <c:simple-property name="clusterName" readOnly="true" description="Cluster Connection Name" default=""/>
-      </plugin-configuration>
-
-      <operation name="getTopology" displayName="get topology" description="Topology that this Cluster Connection knows about">
-         <results>
-            <c:simple-property name="result" displayName="topology" type="string"/>
-         </results>
-      </operation>
-
-      <resource-configuration>
-         <c:group name="ArtemisCustomProperties" displayName="Cluster Connection Options">
-            <c:simple-property name="Name" displayName="name" description="The name of the cluster connection" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="QueueName" displayName="queue name" description="Returns the name of the queue this bridge is consuming messages from" type="string" readOnly="true" required="false"/>
-            <c:simple-property name="ForwardingAddress" displayName="forwarding address" description="Returns the address this bridge will forward messages to" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="FilterString" displayName="filter string" description="Returns the filter string associated with this bridge" type="string" readOnly="true" required="false"/>
-            <c:simple-property name="TransformerClassName" displayName="transformer class name" description="Return the name of the org.apache.activemq.artemis.core.server.cluster.Transformer implementation associated with this bridge" type="string" required="false" readOnly="true"/>
-            <c:list-property name="StaticConnectors" displayName="static connectors" description="Returns any list of static connectors used by this bridge" readOnly="true" required="false">
+            <c:list-property name="result">
                <c:map-property required="false" name="element">
                   <c:simple-property type="string" name="value"/>
                </c:map-property>
             </c:list-property>
-            <c:simple-property name="DiscoveryGroupName" displayName="discovery group name" description="Returns the name of the discovery group used by this bridge" type="string" required="false" readOnly="true"/>
-            <c:simple-property name="RetryInterval" displayName="retry interval" description="Returns the retry interval used by this bridge" type="long" required="false" readOnly="true"/>
-            <c:simple-property name="RetryIntervalMultiplier" displayName="retry interval multiplier" description="Returns the retry interval multiplier used by this bridge" type="double" readOnly="true" required="false"/>
-            <c:simple-property name="ReconnectAttempts" displayName="reconnect attempts" description="number of reconnection attempts used by this bridge" type="integer" required="false" readOnly="true"/>
-            <c:simple-property name="UseDuplicateDetection" displayName="duplicate detection" description="Returns whether this bridge is using duplicate detection" type="boolean" readOnly="true" required="false"/>
-            <c:simple-property name="HA" displayName="HA" description="Returns whether this bridge is using high availability" type="boolean" required="true" readOnly="false"/>
+         </results>
+      </operation>
+      <operation name="closeConnectionsForAddress" displayName="Close Connection" description="Closes all the connections for the given IP Address.">
+         <parameters>
+            <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
+         </parameters>
+         <results>
+            <c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/>
+         </results>
+      </operation>
+      <operation name="closeConsumerConnectionsForAddress" displayName="close connections for address" description="Closes all the connections of clients connected to this server which matches the specified IP address">
+         <parameters>
+            <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
+         </parameters>
+         <results><c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/></results>
+      </operation>
+      <operation name="closeConnectionsForUser" displayName="close connections for user" description="Closes all the connections of sessions with a matching user name">
+         <parameters>
+            <c:simple-property required="true" name="userName" displayName="a user name"/>
+         </parameters>
+         <results>
+            <c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/>
+         </results>
+      </operation>
+      <operation name="listConnectionIDs" displayName="List connections" description="List all the connection IDs.">
+         <results>
+            <c:list-property name="result">
+               <c:map-property required="false" name="element">
+                  <c:simple-property type="string" name="value"/>
+               </c:map-property>
+            </c:list-property>
+         </results>
+      </operation>
+      <operation name="listProducersInfoAsJSON" displayName="list producers as JSON" description="list all the producer info as JSON">
+         <results>
+            <c:simple-property name="result" displayName="producers" type="string"/>
+         </results>
+      </operation>
+      <operation name="listConnectionsAsJSON" displayName="list connections as JSON" description="Lists all the connections connected to this server as JSON">
+         <results>
+            <c:simple-property name="result" displayName="connections" type="string"/>
+         </results>
+      </operation>
+      <operation name="listConsumersAsJSON" displayName="list consumers as JSON" description="list all the consumers info as JSON">
+         <results>
+            <c:simple-property name="result" displayName="consumers" type="string"/>
+         </results>
+      </operation>
+      <operation name="listConsumersAsJSON2,operation==listConsumersAsJSON" displayName="list consumers as JSON" description="list all the consumers for the connection info as JSON">
+         <parameters>
+            <c:simple-property name="connectionID" displayName="connectionID" type="string"/>
+         </parameters>
+         <results>
+            <c:simple-property name="result" displayName="consumers" type="string"/>
+         </results>
+      </operation>
+      <operation name="listAllConsumersAsJSON" displayName="list all consumers as JSON" description="list all the consumer info as JSON">
+         <results>
+            <c:simple-property name="result" displayName="consumers" type="string"/>
+         </results>
+      </operation>
+      <operation name="listSessionsAsJSON" displayName="list sessions as JSON" description="list all the sessions for the connection info as JSON">
+         <parameters>
+            <c:simple-property name="connectionID" displayName="connectionID" type="string"/>
+         </parameters>
+         <results>
+            <c:simple-property name="result" displayName="sessions" type="string"/>
+         </results>
+      </operation>
+      <operation name="listSessions" displayName="List sessions" description="List the sessions for the given connectionID">
+         <parameters>
+            <c:simple-property name="connectionID" displayName="connectionID" type="string"/>
+         </parameters>
+         <results>
+            <c:list-property name="result">
+               <c:map-property required="false" name="element">
+                  <c:simple-property type="string" name="value"/>
+               </c:map-property>
+            </c:list-property>
+         </results>
+      </operation>
+      <operation name="addSecuritySettings" displayName="add security settings" description="Add security settings for addresses matching the address">
+         <parameters>
+            <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
+            <c:simple-property name="send" displayName="send" description="a comma-separated list of roles allowed to send messages" type="string" required="true"/>
+            <c:simple-property name="consume" displayName="consume" description="a comma-separated list of roles allowed to consume messages" type="string" required="true"/>
+            <c:simple-property name="createDurableQueueRoles" displayName="create durable queues" description="a comma-separated list of roles allowed to create durable queues" type="string" required="true"/>
+            <c:simple-property name="deleteDurableQueueRoles" displayName="selete durable queues" description="a comma-separated list of roles allowed to delete durable queues" type="string" required="true"/>
+            <c:simple-property name="createNonDurableQueueRoles" displayName="create non durable queues" description="a comma-separated list of roles allowed to create non durable queues" type="string" required="true"/>
+            <c:simple-property name="deleteNonDurableQueueRoles" displayName="delete non durable queues" description="a comma-separated list of roles allowed to delete non durable queues" type="string" required="true"/>
+            <c:simple-property name="manage" displayName="manage" description="a comma-separated list of roles allowed to send management messages messages" type="string" required="true"/>
+            <c:simple-property name="browse" displayName="browse" description="a comma-separated list of roles allowed to browse queues" type="string" required="true"/>
+            <c:simple-property name="createAddressRoles" displayName="create addresses" description="a comma-separated list of roles allowed to create addresses" type="string" required="true"/>
+            <c:simple-property name="deleteAddressRoles" displayName="delete addresses" description="a comma-separated list of roles allowed to delete addresses" type="string" required="true"/>
+         </parameters>
+      </operation>
+      <operation name="removeSecuritySettings" displayName="remove security settings" description="Remove security settings for an address">
+         <parameters>
+            <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
+         </parameters>
+      </operation>
+      <operation name="getRolesAsJSON" displayName="get roles as JSON" description="et roles (as a JSON string) for a specific address match">
+         <parameters>
+            <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
+         </parameters>
+      </operation>
+      <operation name="addAddressSettings" displayName="add address settings" description="Add address settings for addresses matching the address">
+         <parameters>
+            <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
+            <c:simple-property name="DLA" displayName="send" description="the dead letter address setting" type="string" required="false"/>
+            <c:simple-property name="expiryAddress" displayName="consume" description="the expiry address setting" type="string" required="false"/>
+            <c:simple-property name="expiryDelay" displayName="create durable queues" description="the expiry delay setting" type="long" required="false"/>
+            <c:simple-property name="lastValueQueue" displayName="selete durable queues" description="are any queues created for this address a last value queue" type="string" required="false"/>
+            <c:simple-property name="deliveryAttempts" displayName="create non durable queues" description="the delivery attempts" type="integer" required="false"/>
+            <c:simple-property name="maxSizeBytes" displayName="delete non durable queues" description="the max size in bytes" type="long" required="false"/>
+            <c:simple-property name="pageSizeBytes" displayName="manage" description="the page size in bytes" type="long" required="false"/>
+            <c:simple-property name="pageMaxCacheSize" displayName="browse" description="the max number of pages in the soft memory cache" type="string" required="false"/>
+            <c:simple-property name="redeliveryDelay" displayName="create addresses" description="the redelivery delay" type="long" required="false"/>
+            <c:simple-property name="redeliveryMultiplier" displayName="delete addresses" description="the redelivery delay multiplier" type="double" required="true"/><c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="false"/>
+            <c:simple-property name="maxRedeliveryDelay" displayName="address match" description="the maximum redelivery delay" type="long" required="false"/>
+            <c:simple-property name="redistributionDelay" displayName="address match" description="the redistribution delay" type="long" required="false"/>
+            <c:simple-property name="sendToDLAOnNoRoute" displayName="address match" description="do we send to the DLA when there is no where to route the message" type="boolean" required="false"/>
+            <c:simple-property name="addressFullMessagePolicy" displayName="address match" description="the policy to use when the address is full" type="string" required="false"/>
+            <c:simple-property name="slowConsumerThreshold" displayName="address match" description="when a consumer falls below this threshold in terms of messages consumed per second it will be considered 'slow'" type="long" required="false"/>
+            <c:simple-property name="slowConsumerCheckPeriod" displayName="address match" description="how often (in seconds) to check for slow consumers" type="long" required="false"/>
+            <c:simple-property name="slowConsumerPolicy" displayName="address match" description="the policy to use when a slow consumer is detected (PAGE,DROP,BLOCK,FAIL)" type="string" required="false"/>
+            <c:simple-property name="autoCreateJmsQueues" displayName="address match" description="allow jms queues to be created automatically" type="boolean" required="false"/>
+            <c:simple-property name="autoDeleteJmsQueues" displayName="address match" description="allow auto-created jms queues to be deleted automatically" type="boolean" required="false"/>
+            <c:simple-property name="autoCreateJmsTopics" displayName="address match" description="allow jms topics to be created automatically" type="boolean" required="true"/>
+            <c:simple-property name="autoDeleteJmsTopics" displayName="address match" description="allow auto-created jms topics to be deleted automatically" type="boolean" required="false"/>
+            <c:simple-property name="autoCreateQueues" displayName="address match" description="allow queues to be created automatically" type="boolean" required="false"/>
+            <c:simple-property name="autoDeleteQueues" displayName="address match" description="allow auto-created queues to be deleted automatically" type="boolean" required="false"/>
+            <c:simple-property name="autoCreateAddresses" displayName="address match" description="allow addresses to be created automatically" type="boolean" required="false"/>
+            <c:simple-property name="autoDeleteAddresses" displayName="address match" description="allow auto-created addresses to be deleted automatically" type="boolean" required="false"/>
+         </parameters>
+      </operation>
+      <operation name="removeAddressSettings" displayName="remove address settings" description="Remove address settings for an address">
+         <parameters>
+            <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the address settings to remove" type="string" required="true"/>
+         </parameters>
+      </operation>
+      <operation name="getAddressSettingsAsJSON" displayName="list address settings as JSON" description="returns the address settings as a JSON string">
+         <parameters>
+            <c:simple-property name="addressMatch" displayName="an address match" type="string"/>
+         </parameters>
+         <results>
+            <c:simple-property name="result" displayName="address settings" type="string"/>
+         </results>
+      </operation>
+      <operation name="getDivertNames" displayName="list diverts" description="names of the diverts deployed on this server">
+         <results>
+            <c:list-property name="result" displayName="diverts"/>
+         </results>
+      </operation>
+      <operation name="createDivert" displayName="create divert" description="create a divert">
+         <parameters>
+            <c:simple-property name="name" displayName="name" description="Name of the divert" type="string" required="true"/>
+            <c:simple-property name="routingName" displayName="routing name" description="Routing name of the divert" type="longString" required="true"/>
+            <c:simple-property name="address" displayName="address" description="Address to divert from" type="string" required="true"/>
+            <c:simple-property name="forwardingAddress" displayName="forwarding address" description="Address to divert to" type="string" required="true"/>
+            <c:simple-property name="exclusive" displayName="exclusive" description="Is the divert exclusive?" type="boolean" required="false" default="false"/>
+            <c:simple-property name="filterString" displayName="filter string" description="Filter of the divert" type="string" required="false"/>
+            <c:simple-property name="transformerClassName" displayName="transformer class name" description="Class name of the divert's transformer" type="string" required="false"/>
+            <c:simple-property name="routingType" displayName="routing type" description="How should the routing-type on the diverted messages be set (MULTICAST,ANYCAST,STRIP,PASS)?" type="string" required="false"/>
+         </parameters>
+      </operation>
+      <operation name="destroyDivert" displayName="Destroy Divert" description="Destroy a Divert">
+         <parameters>
+            <c:simple-property name="addressMatch" displayName="name" description="Name of the divert" type="string" required="true"/>
+         </parameters>
+      </operation>
+      <operation name="getBridgeNames" displayName="get bridge names" description="names of the bridges deployed on this server">
+         <results>
+            <c:list-property name="result" displayName="transactions"/>
+         </results>
+      </operation>
+      <operation name="createBridge" displayName="create bridge" description="Create a Bridge">
+         <parameters>
+            <c:simple-property name="name" displayName="name" description="Name of the bridge" type="string" required="true"/>
+            <c:simple-property name="queueName" displayName="queue name" description="Name of the source queue" type="string" required="true"/>
+            <c:simple-property name="forwardingAddress" displayName="forwarding address" description="Forwarding address" type="string" required="true"/>
+            <c:simple-property name="filterString" displayName="filter string" description="Filter of the brdige" type="string" required="false"/>
+            <c:simple-property name="transformerClassName" displayName="transformer classname" description="Class name of the bridge transformer" type="string" required="false"/>
+            <c:simple-property name="retryInterval" displayName="retry interval" description="Connection retry interval" type="long" required="true" default="2000" units="epoch_milliseconds"/>
+            <c:simple-property name="retryIntervalMultiplier" displayName="retry interval multiplier" description="Connection retry interval multiplier" type="double" required="true" default="1"/>
+            <c:simple-property name="initialConnectAttempts" displayName="initial connect attempts" description="Number of initial connection attempts" type="integer" required="true" default="-1"/>
+            <c:simple-property name="reconnectAttempts" displayName="reconnect attempts" description="Number of reconnection attempts" type="integer" required="true" default="-1"/>
+            <c:simple-property name="useDuplicateDetection" displayName="use duplicate detection" description="Use duplicate detection" type="boolean" required="true" default="true"/>
+            <c:simple-property name="confirmationWindowSize" displayName="confiirmation window size" description="Confirmation window size" type="integer" required="true" default="-1"/>
+            <c:simple-property name="producerWindowSize" displayName="producer window size" description="Producer window size" type="integer" required="true" default="-1"/>
+            <c:simple-property name="clientFailureCheckPeriod" displayName="client failure check period" description="Period to check client failure" type="long" required="true" default="30000" units="epoch_milliseconds"/>
+            <c:simple-property name="staticConnectorNames" displayName="static connector names" description="comma separated list of connector names or name of discovery group if 'useDiscoveryGroup' is set to true" type="string" required="false"/>
+            <c:simple-property name="useDiscoveryGroup" displayName="use discovery group" description="use discovery  group" type="boolean" required="true" default="false"/>
+            <c:simple-property name="ha" displayName="support HA" description="Is it using High Availibilty" type="boolean" required="true" default="false"/>
+            <c:simple-property name="user" displayName="user" description="User name" type="string" required="false"/>
+            <c:simple-property name="password" displayName="password" description="User password" type="string" required="false"/>
+         </parameters>
+      </operation>
+      <operation name="destroyBridge" displayName="Destroy Bridge" description="Destroy a Bridge">
+         <parameters>
+            <c:simple-property name="name" displayName="name" description="Name of the bridge" type="string" required="true"/>
+         </parameters>
+      </operation>
+      <operation name="createConnectorService" displayName="create connector service">
+         <parameters>
+            <c:simple-property name="name" displayName="name" description="name of the connector service" type="string" required="true"/>
+            <c:simple-property name="factory class" displayName="factory class" description="Class name of the connector service factory" type="string" required="true"/>
+            <c:map-property name="parameters" required="true" displayName="parameters" description="the parameters as a map for the connector"/>
+         </parameters>
+      </operation>
+      <operation name="destroyConnectorService" displayName="Destroy connector service" description="Destroy a connector service">
+         <parameters>
+            <c:simple-property name="name" displayName="name" description="Name of the service" type="string" required="true"/>
+         </parameters>
+      </operation>
+      <operation name="getConnectorServices" displayName="get connector services" description="names of the connector services on this server">
+         <results>
+            <c:list-property name="result" displayName="connector services"/>
+         </results>
+      </operation>
+      <operation name="forceFailover" displayName="force failover" description="force the server to failover"/>
+      <operation name="scaleDown" displayName="scale down" description="scale down the server to another server">
+         <parameters>
+            <c:simple-property name="name" displayName="connector name" description="The connector to use to scale down, if not provided the first appropriate connector will be used" required="false"/>
+         </parameters>
+      </operation>
+      <operation name="listNetworkTopology" displayName="list network topology" description="list the topology of the clustered network">
+         <results>
+            <c:simple-property name="result" displayName="topology" type="string"/>
+         </results>
+      </operation>
+      <operation name="getAddressInfo" displayName="get address info" description="Get information on the selected address">
+         <parameters>
+            <c:simple-property name="address" displayName="address" description="the addresss name" type="string" required="true"/>
+         </parameters>
+         <results>
+            <c:simple-property name="result" displayName="topology" type="string"/>
+         </results>
+      </operation>
+      <operation name="listBindingsForAddress" displayName="get bindings for address" description="Get a list of bindings associated with an address">
+         <parameters>
+            <c:simple-property name="address" displayName="address" description="the address name" type="string" required="true"/>
+         </parameters>
+         <results>
+            <c:simple-property name="result" displayName="bindings" type="string"/>
+         </results>
+      </operation>
+      <operation name="listAddresses" displayName="List Addresses" description="List Addresses on the broker">
+         <results>
+            <c:simple-property name="result" displayName="addresses" type="string"/>
+         </results>
+      </operation>
+
+      <metric property="ConnectionCount" displayType="summary" description="number of clients connected to this server."/>
+      <metric property="TotalConnectionCount" displayType="summary" description="number of clients which have connected to this server since it was started."/>
+      <metric property="TotalMessageCount" displayType="summary" description="number of messages in all queues on the server"/>
+      <metric property="TotalMessagesAdded" displayType="summary" description="number of messages sent to this server since it was started"/>
+      <metric property="TotalMessagesAcknowledged" displayType="summary" description="number of messages acknowledged from all the queues on this server since it was started"/>
+      <metric property="TotalConsumerCount" displayType="summary" description="number of consumers consuming messages from all the queues on this server"/>
+
+      <resource-configuration>
+         <c:group name="ArtemisCustomProperties" displayName="Broker Options">
+            <c:simple-property name="Started" readOnly="true" description="whether this server is started"/>
+            <c:simple-property name="IncomingInterceptorClassNames" readOnly="true" description="list of interceptors used by this server for incoming messages"/>
+            <c:simple-property name="OutgoingInterceptorClassNames" readOnly="true" description="list of interceptors used by this server for outgoing messages"/>
+            <c:simple-property name="Clustered" readOnly="true" description="whether this server is clustered"/>
+            <c:simple-property name="ScheduledThreadPoolMaxSize"  readOnly="true" description="maximum number of threads in the scheduled thread pool"/>
+            <c:simple-property name="ThreadPoolMaxSize"  readOnly="true" description="maximum number of threads in the thread pool"/>
+            <c:simple-property name="SecurityInvalidationInterval"  readOnly="true" description="interval time (in milliseconds/> to invalidate security credentials"/>
+            <c:simple-property name="SecurityEnabled"  readOnly="true" description="whether security is enabled for this server"/>
+            <c:simple-property name="BindingsDirectory"  readOnly="true" description="file system directory used to store bindings"/>
+            <c:simple-property name="JournalDirectory"  readOnly="true" description="file system directory used to store journal log"/>
+            <c:simple-property name="JournalType"  readOnly="true" description="type of journal used by this server"/>
+            <c:simple-property name="JournalSyncTransactional"  readOnly="true" description="whether the journal is synchronized when receiving transactional data"/>
+            <c:simple-property name="JournalSyncNonTransactional"  readOnly="true" description="whether the journal is synchronized when receiving non-transactional datar"/>
+            <c:simple-property name="JournalFileSize"  readOnly="true" description="size (in bytes) of each journal files"/>
+            <c:simple-property name="JournalMinFiles"  readOnly="true" description="number of journal files to pre-create"/>
+            <c:simple-property name="JournalMaxIO"  readOnly="true" description="maximum number of write requests that can be in the AIO queue at any given time"/>
+            <c:simple-property name="JournalBufferSize"  readOnly="true" description="size of the internal buffer on the journal"/>
+            <c:simple-property name="JournalBufferTimeout"  readOnly="true" description="timeout (in nanoseconds) used to flush internal buffers on the journal"/>
+            <c:simple-property name="FailoverOnServerShutdown"  readOnly="true" description="if clients failover on a server shutdown" />
+            <c:simple-property name="JournalCompactMinFiles"  readOnly="true" description="minimal number of journal files before compacting"/>
+            <c:simple-property name="JournalCompactPercentage"  readOnly="true" description="percentage of live data before compacting the journal"/>
+            <c:simple-property name="PersistenceEnabled"  readOnly="true" description="whether this server is using persistence and store data"/>
+            <c:simple-property name="CreateBindingsDir"  readOnly="true" description="whether the bindings directory is created on this server startu"/>
+            <c:simple-property name="CreateJournalDir"  readOnly="true" description="whether the journal directory is created on this server startup"/>
+            <c:simple-property name="MessageCounterEnabled"  readOnly="true" description="whether message counter is enabled for this server"/>
+            <c:simple-property name="MessageCounterMaxDayCount"  readOnly="true" description="maximum number of days kept in memory for message counter"/>
+            <c:simple-property name="MessageCounterSamplePeriod"  readOnly="true" description="sample period (in milliseconds) to take message counter snapshot"/>
+            <c:simple-property name="Backup"  readOnly="true" description="whether this server is a backup"/>
+            <c:simple-property name="SharedStore"  readOnly="true" description="whether this server shares its data store with a corresponding live or backup serve"/>
+            <c:simple-property name="PagingDirectory"  readOnly="true" description="file system directory used to store paging files"/>
+            <c:simple-property name="PersistDeliveryCountBeforeDelivery"  readOnly="true" description="whether delivery count is persisted before messages are delivered to the consumers"/>
+            <c:simple-property name="ConnectionTTLOverride"  readOnly="true" description="connection time to live"/>
+            <c:simple-property name="ManagementAddress"  readOnly="true" description="management address of this server"/>
+            <c:simple-property name="NodeID"  readOnly="true" description="Node ID of this server"/>
+            <c:simple-property name="ManagementNotificationAddress"  readOnly="true" description="management notification address of this server"/>
+            <c:simple-property name="IDCacheSize"  readOnly="true" description="size of the cache for pre-creating message IDs"/>
+            <c:simple-property name="PersistIDCache"  readOnly="true" description="whether message ID cache is persisted"/>
+            <c:simple-property name="LargeMessagesDirectory"  readOnly="true" description="file system directory used to store large messages"/>
+            <c:simple-property name="WildcardRoutingEnabled"  readOnly="true" description="whether wildcard routing is supported by this server"/>
+            <c:simple-property name="TransactionTimeout"  readOnly="true" description="timeout (in milliseconds) after which transactions is removed from the resource manager after it was created"/>
+            <c:simple-property name="TransactionTimeoutScanPeriod"   readOnly="true" description="frequency (in milliseconds) to scan transactions to detect which transactions have timed out"/>
+            <c:simple-property name="MessageExpiryScanPeriod"  readOnly="true" description="frequency (in milliseconds) to scan messages to detect which messages have expired"/>
+            <c:simple-property name="MessageExpiryThreadPriority"  readOnly="true" description="priority of the thread used to scan message expiration"/>
+            <c:simple-property name="AsyncConnectionExecutionEnabled"  readOnly="true" description="whether code coming from connection is executed asynchronously or not"/>
+            <c:simple-property name="Connectors"  readOnly="true" description="connectors configured for this server"/>
+            <c:simple-property name="ConnectorsAsJSON"  readOnly="true" description="connectors configured for this server using JSON serialization"/>
+            <c:simple-property name="AddressNames"  readOnly="true" description="addresses created on this server"/>
+            <c:simple-property name="QueueNames"  readOnly="true" description="names of the queues created on this server"/>
+            <c:simple-property name="Uptime"  readOnly="true" description="uptime of this server" units="epoch_milliseconds"/>
+            <c:simple-property name="UptimeMillis"  readOnly="true" description="uptime of this server in milliseconds"/>
+            <!--this could throw an exception so best ignore for now-->
+            <!--<c:simple-property name="ReplicaSync"  readOnly="true" description="whether the initial replication synchronization process with the backup server is complete"/>-->
+            <c:simple-property name="DiskScanPeriod"  readOnly="true" description="how often to check for disk space usage, in milliseconds" units="epoch_milliseconds"/>
+            <c:simple-property name="MaxDiskUsage"  readOnly="true" description="maximum limit for disk use, in percentage" units="bytes"/>
+            <c:simple-property name="GlobalMaxSize"  readOnly="true" description="global maximum limit for in-memory messages, in bytes" units="bytes"/>
          </c:group>
+
       </resource-configuration>
-   </service>
+
+      <!-- Make Acceptor, Address and Queue children of Broker -->
+      <service name="Address" discovery="ArtemisMBeanDiscoveryComponent"
+               class="org.rhq.plugins.jmx.MBeanResourceComponent"
+               description="ActiveMQ Artemis Address">
+
+         <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true"
+                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Address,name=%addressName%"/>
+            <c:simple-property name="nameTemplate" readOnly="true"
+                               default="{addressName} Address"/>
+            <c:simple-property name="descriptionTemplate" readOnly="true"
+                               default="ActiveMQ Address {addressName} hosted by Broker {brokerName}"/>
+            <c:simple-property name="addressName" readOnly="true" description="Address Name" default=""/>
+            <c:simple-property name="addressBrokerName" readOnly="true" description="Address Broker Name" default="{brokerName}"/>
+         </plugin-configuration>
+
+         <operation name="sendMessage" description="Sends a text message to a password protected address">
+            <parameters>
+               <c:map-property name="headers" description="The headers to add to the message"/>
+               <c:simple-property name="type" description="A type for the message" type="integer"/>
+               <c:simple-property name="body" description="The body (byte[]) of the messag encoded as a string using Base64" type="string"/>
+               <c:simple-property name="durable" description="Whether the message is durable" type="boolean"/>
+               <c:simple-property name="user" description="The user to authenticate with" type="string"/>
+               <c:simple-property name="password" description="The password to authenticate with" type="string"/>
+            </parameters>
+         </operation>
+         <operation name="getQueueNames" displayName="get queue names" description="names of the queue(s) bound to this address">
+            <results>
+               <c:list-property name="QueueNames" displayName="queue names" description="names of the queue(s) bound to this address">
+                  <c:map-property required="false" name="element">
+                     <c:simple-property type="string" name="value"/>
+                  </c:map-property>
+               </c:list-property>
+            </results>
+         </operation>
+         <operation name="isPaging" displayName="is paging" description="is this address in paging mode">
+            <results>
+               <c:simple-property name="result" displayName="is paging" type="boolean"/>
+            </results>
+         </operation>
+
+         <metric property="AddressSize" displayName="address size" displayType="summary" description="the number of estimated bytes being used by the queue(s), used to control paging and blocking" measurementType="dynamic"/>
+         <metric property="NumberOfMessages" displayName="number of messages" displayType="summary" description="the sum of messages on queue(s), including messages in delivery" measurementType="dynamic"/>
+         <metric property="NumberOfPages" displayName="number of pages" displayType="summary" description="number of pages used by this address" measurementType="dynamic"/>
+         <metric property="NumberOfBytesPerPage" displayName="bytes per page" displayType="summary" description="number of bytes used by each page for this address" measurementType="dynamic"/>
+         <metric property="MessageCount" displayName="message count" displayType="summary" description="number of messages added to all the queues for this" measurementType="trendsup"/>
+         <!-- Availability is added by default -->
+         <resource-configuration>
+            <c:group name="ArtemisCustomProperties" displayName="Address Options">
+               <c:simple-property name="Address" displayName="address" description="the address name" readOnly="true" type="string"/>
+               <c:simple-property name="DeliveryModesAsJSON" displayName="delivery modes" description="the routing delivery modes this address supports" required="false" readOnly="true" type="string"/>
+               <c:simple-property name="RolesAsJSON" displayName="roles" description="roles  (name and permissions) associated with this address using JSON serialization" required="false" readOnly="true" type="string"/>
+            </c:group>
+         </resource-configuration>
+
+         <service name="Anycast Queue" discovery="ArtemisMBeanDiscoveryComponent"
+                  class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                  description="ActiveMQ Artemis Anycast Queue">
+
+            <plugin-configuration>
+               <c:simple-property name="objectName" readOnly="true"
+                                  default="org.apache.activemq.artemis:type=Broker,brokerName={addressBrokerName},parentType=Address,parentName={addressName},serviceType=Queue, routingType=ANYCAST,name=%queueName%"/>
+               <c:simple-property name="nameTemplate" readOnly="true"
+                                  default="{queueName} Anycast Queue on address {addressName}"/>
+               <c:simple-property name="descriptionTemplate" readOnly="true"
+                                  default="ActiveMQ Queue {queueName} hosted by Broker {brokerName}"/>
+               <c:simple-property name="queueName" readOnly="true" description="Queue Name" default=""/>
+            </plugin-configuration>
+
+            &destinationOpsAndMetrics;
+
+         </service>
+         <service name="Multicast Queue" discovery="ArtemisMBeanDiscoveryComponent"
+                  class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                  description="ActiveMQ Artemis Multicast Queue">
+
+            <plugin-configuration>
+               <c:simple-property name="objectName" readOnly="true"
+                                  default="org.apache.activemq.artemis:type=Broker,brokerName={addressBrokerName},parentType=Address,parentName={addressName},serviceType=Queue, routingType=MULTICAST,name=%queueName%"/>
+               <c:simple-property name="nameTemplate" readOnly="true"
+                                  default="{queueName} Multicast Queue on address {addressName}"/>
+               <c:simple-property name="descriptionTemplate" readOnly="true"
+                                  default="ActiveMQ Queue {queueName} hosted by Broker {brokerName}"/>
+               <c:simple-property name="queueName" readOnly="true" description="Queue Name" default=""/>
+            </plugin-configuration>
+
+            &destinationOpsAndMetrics;
+
+         </service>
+      </service>
+      <service name="Acceptor" discovery="ArtemisMBeanDiscoveryComponent"
+               class="org.rhq.plugins.jmx.MBeanResourceComponent"
+               description="ActiveMQ Artemis Acceptor">
+
+         <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true"
+                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Acceptor,name=%acceptorName%"/>
+            <c:simple-property name="nameTemplate" readOnly="true"
+                               default="{acceptorName} Acceptor"/>
+            <c:simple-property name="descriptionTemplate" readOnly="true"
+                               default="ActiveMQ Acceptor {acceptorName} hosted by Broker {brokerName}"/>
+            <c:simple-property name="acceptorName" readOnly="true" description="Acceptor Name" default=""/>
+         </plugin-configuration>
+
+         <operation name="start" description="starts this Acceptor"/>
+         <operation name="stop" description="stops this Acceptor"/>
+         <operation name="reload"
+                    description="Re-create the acceptor with the existing configuration values. Useful, for example, for reloading key/trust stores on acceptors which support SSL"/>
+
+         <!-- Availability is added by default -->
+      </service>
+      <service name="Cluster Connection" discovery="ArtemisMBeanDiscoveryComponent"
+               class="org.rhq.plugins.jmx.MBeanResourceComponent"
+               description="ActiveMQ Artemis Address">
+
+         <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true"
+                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=ClusterConnection,name=%clusterName%"/>
+            <c:simple-property name="nameTemplate" readOnly="true"
+                               default="{clusterName} Address"/>
+            <c:simple-property name="descriptionTemplate" readOnly="true"
+                               default="ActiveMQ Cluster Connection {clusterName} hosted by Broker {brokerName}"/>
+            <c:simple-property name="clusterName" readOnly="true" description="Cluster Connection Name" default=""/>
+         </plugin-configuration>
+
+
+         <operation name="start" displayName="start" description="Starts the Cluster Connection"/>
+         <operation name="stop" displayName="stop" description="Stops the Cluster Connection"/>
+         <operation name="getTopology" displayName="get topology" description="Topology that this Cluster Connection knows about">
+            <results>
+               <c:simple-property name="result" displayName="topology" type="string"/>
+            </results>
+         </operation>
+
+         <resource-configuration>
+            <c:group name="ArtemisCustomProperties" displayName="Cluster Connection Options">
+               <c:simple-property name="Started" readOnly="true" description="whether this cluster connection is started"/>
+               <c:simple-property name="Name" displayName="name" description="The name of the cluster connection" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="Address" displayName="address" description="address used by this cluster connection" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="NodeID" displayName="node ID" description="node ID used by this cluster connection" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="DuplicateDetection" displayName="duplicate detection" description="whether this cluster connection use duplicate detection" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="MessageLoadBalancingType" displayName="message load balancing type" description="type of message load balancing strategy this bridge will use" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="MaxHops" displayName="max hops" description="maximum number of hops used by this cluster connection" type="integer" readOnly="false" required="false"/>
+               <c:simple-property name="StaticConnectorsAsJSON" displayName="static connectors" description="list of static connectors as JSON" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="DiscoveryGroupName" displayName="discovery group name" description="name of the discovery group used by this cluster connection" type="string" readOnly="true" required="false"/>
+               <c:simple-property name="RetryInterval" displayName="retry interval" description="connection retry interval used by this cluster connection" type="long" readOnly="true" required="false"/>
+            </c:group>
+         </resource-configuration>
+      </service>
+      <service name="Bridge" discovery="ArtemisMBeanDiscoveryComponent"
+               class="org.rhq.plugins.jmx.MBeanResourceComponent"
+               description="ActiveMQ Artemis Bridge">
+
+         <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true"
+                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Bridge,name=%bridgeName%"/>
+            <c:simple-property name="nameTemplate" readOnly="true"
+                               default="{bridgeName} Bridge"/>
+            <c:simple-property name="descriptionTemplate" readOnly="true"
+                               default="ActiveMQ Bridge {bridgeName} hosted by Broker {brokerName}"/>
+            <c:simple-property name="bridgeName" readOnly="true" description="Bridge Name" default=""/>
+         </plugin-configuration>
+
+         <operation name="start" displayName="start" description="Starts the Bridge"/>
+         <operation name="stop" displayName="stop" description="Stops the Bridge"/>
+
+         <resource-configuration>
+            <c:group name="ArtemisCustomProperties" displayName="Bridge Options">
+               <c:simple-property name="Started" readOnly="true" description="whether this bridge is started"/>
+               <c:simple-property name="Name" displayName="name" description="The name of the Bridge" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="QueueName" displayName="queue name" description="Returns the name of the queue this bridge is consuming messages from" type="string" readOnly="true" required="false"/>
+               <c:simple-property name="ForwardingAddress" displayName="forwarding address" description="Returns the address this bridge will forward messages to" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="FilterString" displayName="filter string" description="Returns the filter string associated with this bridge" type="string" readOnly="true" required="false"/>
+               <c:simple-property name="TransformerClassName" displayName="transformer class name" description="Return the name of the org.apache.activemq.artemis.core.server.cluster.Transformer implementation associated with this bridge" type="string" required="false" readOnly="true"/>
+               <c:list-property name="StaticConnectors" displayName="static connectors" description="Returns any list of static connectors used by this bridge" readOnly="true" required="false">
+                  <c:map-property required="false" name="element">
+                     <c:simple-property type="string" name="value"/>
+                  </c:map-property>
+               </c:list-property>
+               <c:simple-property name="DiscoveryGroupName" displayName="discovery group name" description="Returns the name of the discovery group used by this bridge" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="RetryInterval" displayName="retry interval" description="Returns the retry interval used by this bridge" type="long" required="false" readOnly="true"/>
+               <c:simple-property name="RetryIntervalMultiplier" displayName="retry interval multiplier" description="Returns the retry interval multiplier used by this bridge" type="double" readOnly="true" required="false"/>
+               <c:simple-property name="ReconnectAttempts" displayName="reconnect attempts" description="number of reconnection attempts used by this bridge" type="integer" required="false" readOnly="true"/>
+               <c:simple-property name="UseDuplicateDetection" displayName="duplicate detection" description="Returns whether this bridge is using duplicate detection" type="boolean" readOnly="true" required="false"/>
+               <c:simple-property name="HA" displayName="HA" description="Returns whether this bridge is using high availability" type="boolean" required="true" readOnly="false"/>
+            </c:group>
+         </resource-configuration>
+      </service>
+
+      <service name="Broadcast Group" discovery="ArtemisMBeanDiscoveryComponent"
+               class="org.rhq.plugins.jmx.MBeanResourceComponent"
+               description="ActiveMQ Artemis Broadcast Group">
+
+         <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true"
+                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Bridge,name=%broadcastGroupName%"/>
+            <c:simple-property name="nameTemplate" readOnly="true"
+                               default="{broadcastGroupName} Broadcast Group"/>
+            <c:simple-property name="descriptionTemplate" readOnly="true"
+                               default="ActiveMQ Broadcast Group {broadcastGroupName} hosted by Broker {brokerName}"/>
+            <c:simple-property name="broadcastGroupName" readOnly="true" description="Broadcast Group Name" default=""/>
+         </plugin-configuration>
+
+         <operation name="start" displayName="start" description="Starts the Broadcast Group"/>
+         <operation name="stop" displayName="stop" description="Stops the Broadcast Group"/>
+
+         <resource-configuration>
+            <c:group name="ArtemisCustomProperties" displayName="Broadcast Group Options">
+               <c:simple-property name="Started" readOnly="true" description="whether this broadcast group is started"/>
+               <c:simple-property name="Name" displayName="name" description="name of this broadcast group" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="LocalBindPort" displayName="local bind port" description="local port this broadcast group is bound to" type="integer" required="true" readOnly="true"/>
+               <c:simple-property name="GroupAddress" displayName="group address" description="getGroupAddress" type="string" required="true" readOnly="true"/>
+               <c:simple-property name="GroupPort" displayName="group port" description="getGroupPort" type="integer" readOnly="true" required="true"/>
+               <c:simple-property name="BroadcastPeriod" displayName="broadcast period" description="getBroadcastPeriod"  type="long" required="true"  readOnly="true"/>
+               <c:simple-property name="ConnectorPairsAsJSON" displayName="connector pairs" description="pairs of live-backup connectors that are broadcasted by this broadcast group using JSON serialization" type="string" required="true" readOnly="true"/>
+            </c:group>
+         </resource-configuration>
+      </service>
+
+      <service name="Divert" discovery="ArtemisMBeanDiscoveryComponent"
+                     class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                     description="ActiveMQ Artemis Divert">
+
+         <plugin-configuration>
+            <c:simple-property name="objectName" readOnly="true"
+                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Bridge,name=%divertName%"/>
+            <c:simple-property name="nameTemplate" readOnly="true"
+                               default="{divertName} Divert"/>
+            <c:simple-property name="descriptionTemplate" readOnly="true"
+                               default="ActiveMQ Divert {divertName} hosted by Broker {brokerName}"/>
+            <c:simple-property name="divertName" readOnly="true" description="Divert Name" default=""/>
+         </plugin-configuration>
+
+         <resource-configuration>
+            <c:group name="ArtemisCustomProperties" displayName="Broadcast Group Options">
+               <c:simple-property name="Filter" displayName="filter" description="the filter used by this divert" type="string" readOnly="true" required="false"/>
+               <c:simple-property name="Exclusive" displayName="exclusive" description="whether this divert is exclusive." type="boolean" required="true" readOnly="true"/>
+               <c:simple-property name="UniqueName" displayName="unique name" description="the cluster-wide unique name of this divert" type="string" required="true" readOnly="true"/>
+               <c:simple-property name="RoutingName" displayName="routing name" description="the routing name of this divert" type="string" readOnly="true" required="true"/>
+               <c:simple-property name="Address" displayName="address" description="the origin address used by this divert" type="string" required="true" readOnly="true"/>
+               <c:simple-property name="ForwardingAddress" displayName="forwarding address" description="forwarding address used by this divert" type="string" required="true" readOnly="true"/>
+               <c:simple-property name="TransformerClassName" displayName="transformer class name" description="the name of the org.apache.activemq.artemis.core.server.cluster.Transformer implementation associated with this divert" type="string" required="false" readOnly="true"/>
+               <c:simple-property name="RoutingType" displayName="routing type" description="the routing type used by this divert" type="string" required="true" readOnly="true"/>
+           </c:group>
+         </resource-configuration>
+      </service>
 
    </service>
 
