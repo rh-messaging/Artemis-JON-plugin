@@ -1,1 +1,1 @@
-# AMQ7-JON
+#Artemis JON plugin
