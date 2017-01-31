@@ -18,6 +18,9 @@
 <!-- Entities for metrics and configuration -->
 <!DOCTYPE plugin [
 
+      <!ENTITY FULL_BROKER_NAME 'Apache ActiveMQ Artemis'>
+      <!ENTITY BROKER_NAME 'ActiveMQ Artemis'>
+      <!ENTITY SHORT_BROKER_NAME 'Artemis'>
       <!ENTITY destinationOpsAndMetrics '
         <operation name="getFirstMessageAsJSON" displayName="get first message" description="Returns the first message on the queue as JSON">
            <results>
@@ -247,9 +250,9 @@
       ]>
 <!-- End of Entities -->
 
-<plugin name="Artemis"
-        displayName="Apache ActiveMQ Artemis"
-        description="Management and monitoring of Apache ActiveMQ Artemis"
+<plugin name="&SHORT_BROKER_NAME;"
+        displayName="&FULL_BROKER_NAME;"
+        description="Management and monitoring of &FULL_BROKER_NAME;"
         version="${project.version}"
         package="org.jbosson.plugins.amq"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -262,10 +265,10 @@
 
    <depends plugin="JMX" useClasses="true"/>
 
-   <server name="ActiveMQ Artemis Server" supportsManualAdd="true"
+   <server name="&BROKER_NAME; Server" supportsManualAdd="true"
            discovery="ArtemisServerDiscoveryComponent"
            class="ArtemisServerComponent"
-           description="ActiveMQ Artemis Server Process">
+           description="&BROKER_NAME; Server Process">
 
       <plugin-configuration>
 
@@ -314,9 +317,9 @@
 
          <!-- properties used by ArtemisServerDiscoveryComponent -->
          <c:group name="systemProperties" displayName="System Properties" hiddenByDefault="false">
-            <c:simple-property name="artemis.instance" displayName="ActiveMQ Artemis Instance"
+            <c:simple-property name="artemis.instance" displayName="&BROKER_NAME; Instance"
                                readOnly="true" default="Set by plugin by default, REQUIRED for non-native platforms"
-                               description="ActiveMQ Artemis Server Instance Directory"/>
+                               description="&BROKER_NAME; Server Instance Directory"/>
          </c:group>
 
          <c:group name="resourceDiscovery" displayName="Discovery Properties" hiddenByDefault="true">
@@ -351,7 +354,7 @@
       </drift-definition>
 
       <!-- include generic JMX VM server resource -->
-      <server name="ActiveMQ Server JVM" description="JVM of the ActiveMQ Artemis Server"
+      <server name="ActiveMQ Server JVM" description="JVM of the &BROKER_NAME; Server"
               sourcePlugin="JMX" sourceType="JMX Server"
               discovery="ArtemisEmbeddedJMXServerDiscoveryComponent"
               class="org.rhq.plugins.jmx.JMXServerComponent"
@@ -359,14 +362,14 @@
 
    </server>
 
-   <!-- Services for ActiveMQ Artemis Brokers, Connector, Topic, Queues. -->
+   <!-- Services for &BROKER_NAME; Brokers, Connector, Topic, Queues. -->
    <service name="Broker" discovery="ArtemisMBeanDiscoveryComponent"
             class="ArtemisResourceComponent"
             classLoader="instance"
-            description="ActiveMQ Artemis Broker" createDeletePolicy="neither">
+            description="&BROKER_NAME; Broker" createDeletePolicy="neither">
 
       <runs-inside>
-         <parent-resource-type name="ActiveMQ Artemis Server" plugin="Artemis"/>
+         <parent-resource-type name="&BROKER_NAME; Server" plugin="&SHORT_BROKER_NAME;"/>
          <parent-resource-type name="JMX Server" plugin="JMX"/>
       </runs-inside>
 
@@ -375,7 +378,7 @@
          <c:simple-property name="Version" readOnly="true" required="false" description="Broker Version" />
          <c:simple-property name="objectName" readOnly="true" default="org.apache.activemq.artemis:type=Broker,brokerName=%brokerName%,serviceType=Broker"/>
          <c:simple-property name="nameTemplate" readOnly="true" default="{brokerName} Broker {BrokerVersion}"/>
-         <c:simple-property name="descriptionTemplate" readOnly="true" default="ActiveMQ Artemis Broker {brokerName}"/>
+         <c:simple-property name="descriptionTemplate" readOnly="true" default="&BROKER_NAME; Broker {brokerName}"/>
          <c:simple-property name="brokerName" readOnly="true" description="Broker Name" default=""/>
 
       </plugin-configuration>
@@ -803,7 +806,7 @@
       <!-- Make Acceptor, Address and Queue children of Broker -->
       <service name="Address" discovery="ArtemisMBeanDiscoveryComponent"
                class="org.rhq.plugins.jmx.MBeanResourceComponent"
-               description="ActiveMQ Artemis Address">
+               description="&BROKER_NAME; Address">
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
@@ -857,7 +860,7 @@
 
          <service name="Anycast Queue" discovery="ArtemisMBeanDiscoveryComponent"
                   class="org.rhq.plugins.jmx.MBeanResourceComponent"
-                  description="ActiveMQ Artemis Anycast Queue">
+                  description="&BROKER_NAME; Anycast Queue">
 
             <plugin-configuration>
                <c:simple-property name="objectName" readOnly="true"
@@ -874,7 +877,7 @@
          </service>
          <service name="Multicast Queue" discovery="ArtemisMBeanDiscoveryComponent"
                   class="org.rhq.plugins.jmx.MBeanResourceComponent"
-                  description="ActiveMQ Artemis Multicast Queue">
+                  description="&BROKER_NAME; Multicast Queue">
 
             <plugin-configuration>
                <c:simple-property name="objectName" readOnly="true"
@@ -892,7 +895,7 @@
       </service>
       <service name="Acceptor" discovery="ArtemisMBeanDiscoveryComponent"
                class="org.rhq.plugins.jmx.MBeanResourceComponent"
-               description="ActiveMQ Artemis Acceptor">
+               description="&BROKER_NAME; Acceptor">
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
@@ -913,7 +916,7 @@
       </service>
       <service name="Cluster Connection" discovery="ArtemisMBeanDiscoveryComponent"
                class="org.rhq.plugins.jmx.MBeanResourceComponent"
-               description="ActiveMQ Artemis Address">
+               description="&BROKER_NAME; Address">
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
@@ -951,7 +954,7 @@
       </service>
       <service name="Bridge" discovery="ArtemisMBeanDiscoveryComponent"
                class="org.rhq.plugins.jmx.MBeanResourceComponent"
-               description="ActiveMQ Artemis Bridge">
+               description="&BROKER_NAME; Bridge">
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
@@ -991,7 +994,7 @@
 
       <service name="Broadcast Group" discovery="ArtemisMBeanDiscoveryComponent"
                class="org.rhq.plugins.jmx.MBeanResourceComponent"
-               description="ActiveMQ Artemis Broadcast Group">
+               description="&BROKER_NAME; Broadcast Group">
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
@@ -1021,7 +1024,7 @@
 
       <service name="Divert" discovery="ArtemisMBeanDiscoveryComponent"
                      class="org.rhq.plugins.jmx.MBeanResourceComponent"
-                     description="ActiveMQ Artemis Divert">
+                     description="&BROKER_NAME; Divert">
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
