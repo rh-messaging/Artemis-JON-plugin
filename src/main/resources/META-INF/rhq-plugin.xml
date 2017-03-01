@@ -376,19 +376,17 @@
       <plugin-configuration>
 
          <c:simple-property name="Version" readOnly="true" required="false" description="Broker Version" />
-         <c:simple-property name="objectName" readOnly="true" default="org.apache.activemq.artemis:type=Broker,brokerName=%brokerName%,serviceType=Broker"/>
+         <c:simple-property name="objectName" readOnly="true" default="org.apache.activemq.artemis:broker=%brokerName%"/>
          <c:simple-property name="nameTemplate" readOnly="true" default="{brokerName} Broker {BrokerVersion}"/>
          <c:simple-property name="descriptionTemplate" readOnly="true" default="&BROKER_NAME; Broker {brokerName}"/>
-         <c:simple-property name="brokerName" readOnly="true" description="Broker Name" default=""/>
+         <c:simple-property name="brokerName" readOnly="true" description="Broker Name" default="amq"/>
 
       </plugin-configuration>
 
-      <operation name="start" displayName="start" description="Starts the Broker"/>
-      <operation name="stop" displayName="stop" description="Stops the Broker and all its components"/>
       <operation name="createAddress" displayName="Create Address" description="create an address">
          <parameters>
             <c:simple-property name="name" displayName="name" description="The name of the address" type="string" required="true"/>
-            <c:simple-property name="routingTypes" displayName="routing types" description="Comma separated list of Routing Types (anycast/multicast)" type="string" required="true"/>
+            <c:simple-property name="routingTypes" displayName="routing types" description="Comma separated list of Routing Types (ANYCAST/MULTICAST)" type="string" required="true"/>
          </parameters>
          <results>
             <c:simple-property name="result" displayName="The Address Information" type="string"/>
@@ -407,7 +405,7 @@
             <c:simple-property name="filter" displayName="filter" description="Filter of the queue" type="string" required="false"/>
             <c:simple-property name="durable" displayName="durable" description="Is the queue durable?" type="boolean" required="true" default="true"/>
             <c:simple-property name="maxConsumers" displayName="max consumers" description="The maximum number of consumers allowed on this queue at any one time" type="integer" default="-1"/>
-            <c:simple-property name="deleteOnNoConsumers" displayName="delete when no consumers"  description="Delete this queue when the last consumer disconnects" type="boolean" required="true" default="false"/>
+            <c:simple-property name="purgeOnNoConsumers" displayName="delete when no consumers"  description="Delete this queue when the last consumer disconnects" type="boolean" required="true" default="false"/>
             <c:simple-property name="autoCreateAddress" displayName="auto create the address if it doesnt exist" description="Create an address with default values should a matching address not be found" type="boolean" default="true"/>
          </parameters>
       </operation>
@@ -653,11 +651,6 @@
             <c:simple-property name="addressMatch" displayName="name" description="Name of the divert" type="string" required="true"/>
          </parameters>
       </operation>
-      <operation name="getBridgeNames" displayName="get bridge names" description="names of the bridges deployed on this server">
-         <results>
-            <c:list-property name="result" displayName="transactions"/>
-         </results>
-      </operation>
       <operation name="createBridge" displayName="create bridge" description="Create a Bridge">
          <parameters>
             <c:simple-property name="name" displayName="name" description="Name of the bridge" type="string" required="true"/>
@@ -799,6 +792,17 @@
             <c:simple-property name="DiskScanPeriod"  readOnly="true" description="how often to check for disk space usage, in milliseconds" units="epoch_milliseconds"/>
             <c:simple-property name="MaxDiskUsage"  readOnly="true" description="maximum limit for disk use, in percentage" units="bytes"/>
             <c:simple-property name="GlobalMaxSize"  readOnly="true" description="global maximum limit for in-memory messages, in bytes" units="bytes"/>
+            <c:simple-property name="QueueNames" readOnly="true" description="all queues created on the server"/>
+            <c:list-property name="QueueNames" readOnly="true" displayName="queue names" description="names of the queue(s) created on this broker">
+               <c:map-property required="false" name="element">
+                  <c:simple-property type="string" name="value"/>
+               </c:map-property>
+            </c:list-property>
+            <c:list-property name="BridgeNames" readOnly="true" displayName="bridge names" description="bridge(s) deployed on this broker">
+               <c:map-property required="false" name="element">
+                  <c:simple-property type="string" name="value"/>
+               </c:map-property>
+            </c:list-property>
          </c:group>
 
       </resource-configuration>
@@ -810,7 +814,7 @@
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
-                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Address,name=%addressName%"/>
+                               default="org.apache.activemq.artemis:broker={brokerName},component=addresses,address=%addressName%"/>
             <c:simple-property name="nameTemplate" readOnly="true"
                                default="{addressName} Address"/>
             <c:simple-property name="descriptionTemplate" readOnly="true"
@@ -829,20 +833,6 @@
                <c:simple-property name="password" description="The password to authenticate with" type="string"/>
             </parameters>
          </operation>
-         <operation name="getQueueNames" displayName="get queue names" description="names of the queue(s) bound to this address">
-            <results>
-               <c:list-property name="QueueNames" displayName="queue names" description="names of the queue(s) bound to this address">
-                  <c:map-property required="false" name="element">
-                     <c:simple-property type="string" name="value"/>
-                  </c:map-property>
-               </c:list-property>
-            </results>
-         </operation>
-         <operation name="isPaging" displayName="is paging" description="is this address in paging mode">
-            <results>
-               <c:simple-property name="result" displayName="is paging" type="boolean"/>
-            </results>
-         </operation>
 
          <metric property="AddressSize" displayName="address size" displayType="summary" description="the number of estimated bytes being used by the queue(s), used to control paging and blocking" measurementType="dynamic"/>
          <metric property="NumberOfMessages" displayName="number of messages" displayType="summary" description="the sum of messages on queue(s), including messages in delivery" measurementType="dynamic"/>
@@ -855,6 +845,12 @@
                <c:simple-property name="Address" displayName="address" description="the address name" readOnly="true" type="string"/>
                <c:simple-property name="DeliveryModesAsJSON" displayName="delivery modes" description="the routing delivery modes this address supports" required="false" readOnly="true" type="string"/>
                <c:simple-property name="RolesAsJSON" displayName="roles" description="roles  (name and permissions) associated with this address using JSON serialization" required="false" readOnly="true" type="string"/>
+               <c:list-property name="QueueNames" readOnly="true" displayName="queue names" description="names of the queue(s) bound to this address">
+                  <c:map-property required="false" name="element">
+                     <c:simple-property type="string" name="value"/>
+                  </c:map-property>
+               </c:list-property>
+               <c:simple-property name="Paging" displayName="paging" readOnly="true" description="if the address is in paging mode" type="boolean"/>
             </c:group>
          </resource-configuration>
 
@@ -864,7 +860,7 @@
 
             <plugin-configuration>
                <c:simple-property name="objectName" readOnly="true"
-                                  default="org.apache.activemq.artemis:type=Broker,brokerName={addressBrokerName},parentType=Address,parentName={addressName},serviceType=Queue, routingType=ANYCAST,name=%queueName%"/>
+                                  default="org.apache.activemq.artemis:broker={brokerName},component=addresses,address={addressName},subcomponent=queues,routing-type=anycast,queue=%queueName%"/>
                <c:simple-property name="nameTemplate" readOnly="true"
                                   default="{queueName} Anycast Queue on address {addressName}"/>
                <c:simple-property name="descriptionTemplate" readOnly="true"
@@ -881,7 +877,7 @@
 
             <plugin-configuration>
                <c:simple-property name="objectName" readOnly="true"
-                                  default="org.apache.activemq.artemis:type=Broker,brokerName={addressBrokerName},parentType=Address,parentName={addressName},serviceType=Queue, routingType=MULTICAST,name=%queueName%"/>
+                                  default="org.apache.activemq.artemis:broker={brokerName},component=addresses,address={addressName},subcomponent=queues, routing-type=multicast,name=%queueName%"/>
                <c:simple-property name="nameTemplate" readOnly="true"
                                   default="{queueName} Multicast Queue on address {addressName}"/>
                <c:simple-property name="descriptionTemplate" readOnly="true"
@@ -899,7 +895,7 @@
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
-                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Acceptor,name=%acceptorName%"/>
+                               default="org.apache.activemq.artemis:broker={brokerName},component=acceptors,name=%acceptorName%"/>
             <c:simple-property name="nameTemplate" readOnly="true"
                                default="{acceptorName} Acceptor"/>
             <c:simple-property name="descriptionTemplate" readOnly="true"
@@ -920,7 +916,7 @@
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
-                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=ClusterConnection,name=%clusterName%"/>
+                               default="org.apache.activemq.artemis:broker={brokerName},component=cluster-connections,name=%clusterName%"/>
             <c:simple-property name="nameTemplate" readOnly="true"
                                default="{clusterName} Address"/>
             <c:simple-property name="descriptionTemplate" readOnly="true"
@@ -958,7 +954,7 @@
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
-                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Bridge,name=%bridgeName%"/>
+                               default="org.apache.activemq.artemis:broker={brokerName},component=bridges,name=%bridgeName%"/>
             <c:simple-property name="nameTemplate" readOnly="true"
                                default="{bridgeName} Bridge"/>
             <c:simple-property name="descriptionTemplate" readOnly="true"
@@ -998,7 +994,7 @@
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
-                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Bridge,name=%broadcastGroupName%"/>
+                               default="org.apache.activemq.artemis:broker={brokerName},component=broadcast-groups,name=%broadcastGroupName%"/>
             <c:simple-property name="nameTemplate" readOnly="true"
                                default="{broadcastGroupName} Broadcast Group"/>
             <c:simple-property name="descriptionTemplate" readOnly="true"
@@ -1028,7 +1024,7 @@
 
          <plugin-configuration>
             <c:simple-property name="objectName" readOnly="true"
-                               default="org.apache.activemq.artemis:type=Broker,brokerName={brokerName},serviceType=Bridge,name=%divertName%"/>
+                               default="org.apache.activemq.artemis:broker={brokerName},component=addresses,address=%Address%,subcomponent=diverts,divert=%UniqueName%"/>
             <c:simple-property name="nameTemplate" readOnly="true"
                                default="{divertName} Divert"/>
             <c:simple-property name="descriptionTemplate" readOnly="true"
