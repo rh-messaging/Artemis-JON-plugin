@@ -52,7 +52,7 @@ public class ArtemisResourceComponent<T extends JMXComponent<?>> extends MBeanRe
     @Override
     public Configuration loadResourceConfiguration() {
         Configuration configuration = new Configuration();
-        ConfigurationDefinition configurationDefinition = this.resourceContext.getResourceType()
+        ConfigurationDefinition configurationDefinition = this.getResourceContext().getResourceType()
             .getResourceConfigurationDefinition();
 
         for (PropertyDefinition property : configurationDefinition.getPropertyDefinitions().values()) {

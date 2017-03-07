@@ -377,7 +377,7 @@
 
          <c:simple-property name="Version" readOnly="true" required="false" description="Broker Version" />
          <c:simple-property name="objectName" readOnly="true" default="org.apache.activemq.artemis:broker=%brokerName%"/>
-         <c:simple-property name="nameTemplate" readOnly="true" default="{brokerName} Broker {BrokerVersion}"/>
+         <c:simple-property name="nameTemplate" readOnly="true" default="{brokerName} Broker {Version}"/>
          <c:simple-property name="descriptionTemplate" readOnly="true" default="&BROKER_NAME; Broker {brokerName}"/>
          <c:simple-property name="brokerName" readOnly="true" description="Broker Name" default="amq"/>
 
@@ -784,19 +784,16 @@
             <c:simple-property name="Connectors"  readOnly="true" description="connectors configured for this server"/>
             <c:simple-property name="ConnectorsAsJSON"  readOnly="true" description="connectors configured for this server using JSON serialization"/>
             <c:simple-property name="AddressNames"  readOnly="true" description="addresses created on this server"/>
-            <c:simple-property name="QueueNames"  readOnly="true" description="names of the queues created on this server"/>
             <c:simple-property name="Uptime"  readOnly="true" description="uptime of this server" units="epoch_milliseconds"/>
             <c:simple-property name="UptimeMillis"  readOnly="true" description="uptime of this server in milliseconds"/>
+            <c:simple-property name="Version"  readOnly="true" description="version of the broker"/>
             <!--this could throw an exception so best ignore for now-->
             <!--<c:simple-property name="ReplicaSync"  readOnly="true" description="whether the initial replication synchronization process with the backup server is complete"/>-->
             <c:simple-property name="DiskScanPeriod"  readOnly="true" description="how often to check for disk space usage, in milliseconds" units="epoch_milliseconds"/>
             <c:simple-property name="MaxDiskUsage"  readOnly="true" description="maximum limit for disk use, in percentage" units="bytes"/>
             <c:simple-property name="GlobalMaxSize"  readOnly="true" description="global maximum limit for in-memory messages, in bytes" units="bytes"/>
-            <c:simple-property name="QueueNames" readOnly="true" description="all queues created on the server"/>
             <c:list-property name="QueueNames" readOnly="true" displayName="queue names" description="names of the queue(s) created on this broker">
-               <c:map-property required="false" name="element">
-                  <c:simple-property type="string" name="value"/>
-               </c:map-property>
+               <c:simple-property type="string" name="value"/>
             </c:list-property>
             <c:list-property name="BridgeNames" readOnly="true" displayName="bridge names" description="bridge(s) deployed on this broker">
                <c:map-property required="false" name="element">
@@ -860,12 +857,13 @@
 
             <plugin-configuration>
                <c:simple-property name="objectName" readOnly="true"
-                                  default="org.apache.activemq.artemis:broker={brokerName},component=addresses,address={addressName},subcomponent=queues,routing-type=anycast,queue=%queueName%"/>
+                                  default="org.apache.activemq.artemis:broker={addressBrokerName},component=addresses,address={addressName},subcomponent=queues,routing-type=%anycast%,queue=%queueName%"/>
                <c:simple-property name="nameTemplate" readOnly="true"
                                   default="{queueName} Anycast Queue on address {addressName}"/>
                <c:simple-property name="descriptionTemplate" readOnly="true"
                                   default="ActiveMQ Queue {queueName} hosted by Broker {brokerName}"/>
                <c:simple-property name="queueName" readOnly="true" description="Queue Name" default=""/>
+               <c:simple-property name="anycast" readOnly="true" description="ANYCAST" default="anycast"/>
             </plugin-configuration>
 
             &destinationOpsAndMetrics;
@@ -877,12 +875,13 @@
 
             <plugin-configuration>
                <c:simple-property name="objectName" readOnly="true"
-                                  default="org.apache.activemq.artemis:broker={brokerName},component=addresses,address={addressName},subcomponent=queues, routing-type=multicast,name=%queueName%"/>
+                                  default="org.apache.activemq.artemis:broker={addressBrokerName},component=addresses,address={addressName},subcomponent=queues,routing-type=%multicast%,name=%queueName%"/>
                <c:simple-property name="nameTemplate" readOnly="true"
                                   default="{queueName} Multicast Queue on address {addressName}"/>
                <c:simple-property name="descriptionTemplate" readOnly="true"
                                   default="ActiveMQ Queue {queueName} hosted by Broker {brokerName}"/>
                <c:simple-property name="queueName" readOnly="true" description="Queue Name" default=""/>
+               <c:simple-property name="multicast" readOnly="true" description="MULTICAST" default="anycast"/>
             </plugin-configuration>
 
             &destinationOpsAndMetrics;

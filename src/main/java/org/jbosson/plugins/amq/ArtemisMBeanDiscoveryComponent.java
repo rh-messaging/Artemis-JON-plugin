@@ -21,16 +21,15 @@ import org.mc4j.ems.connection.EmsConnection;
 import org.mc4j.ems.connection.bean.EmsBean;
 import org.mc4j.ems.connection.bean.attribute.EmsAttribute;
 import org.rhq.core.domain.configuration.Configuration;
+import org.rhq.core.domain.configuration.Property;
 import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.domain.configuration.definition.PropertyDefinition;
 import org.rhq.core.domain.resource.ResourceType;
 import org.rhq.core.pluginapi.inventory.DiscoveredResourceDetails;
-import org.rhq.core.pluginapi.inventory.ResourceComponent;
 import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.inventory.ResourceDiscoveryContext;
 import org.rhq.core.util.MessageDigestGenerator;
 import org.rhq.plugins.jmx.JMXComponent;
-import org.rhq.plugins.jmx.MBeanResourceComponent;
 import org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent;
 import org.rhq.plugins.jmx.util.ObjectNameQueryUtility;
 
@@ -61,6 +60,8 @@ public class ArtemisMBeanDiscoveryComponent<T extends JMXComponent<?>> extends M
 
     private final Log log = LogFactory.getLog(getClass());
 
+    private static Map<String, Property> allProps = new HashMap<String, Property>();
+
     private static final Pattern PROPERTY_NAME_PATTERN = Pattern.compile("\\{([^\\{\\},=:\\*\\?]+)\\}");
     private static final Pattern OBJECT_NAME_PROPERTY_PATTERN = Pattern.compile("\\%([^\\%,=:\\*\\?]+)\\%");
     private static final String OPTIONAL_PROPERTY_DEFAULT_VALUE = "-";
@@ -72,10 +73,15 @@ public class ArtemisMBeanDiscoveryComponent<T extends JMXComponent<?>> extends M
     public static final String STATS_OBJECT_NAME_PROPERTY = "statsObjectName";
     protected ResourceDiscoveryContext<T> discoveryContext;
 
+
     @Override
     public Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext<T> context) {
 
         this.discoveryContext = context;
+        final ResourceContext<?> parentContext = this.discoveryContext.getParentResourceContext();
+        if (parentContext != null) {
+            allProps.putAll(parentContext.getPluginConfiguration().getMap());
+        }
 
         // call super to get resources, skip unknown props by default if not set in resource plugin config
         Set<DiscoveredResourceDetails> detailsSet = super.discoverResources(context,
@@ -98,7 +104,6 @@ public class ArtemisMBeanDiscoveryComponent<T extends JMXComponent<?>> extends M
                 }
             }
 
-            final ResourceContext<?> parentContext = context.getParentResourceContext();
             // if it has a parent and we need to replace something in name or description
             if (parentContext != null &&
                 (details.getResourceName().contains("{") || details.getResourceDescription().contains("}"))) {
@@ -242,15 +247,16 @@ public class ArtemisMBeanDiscoveryComponent<T extends JMXComponent<?>> extends M
             }
             // Get the query template, replacing the parent key variables with the values from the parent configuration
             ObjectNameQueryUtility queryUtility = new ObjectNameQueryUtility(objectNameQueryTemplate,
-                (this.discoveryContext != null) ? this.discoveryContext.getParentResourceContext()
-                    .getPluginConfiguration() : null);
+                        (this.discoveryContext != null) ? this.discoveryContext.getParentResourceContext()
+                                .getPluginConfiguration() : null);
             String translatedQuery = queryUtility.getTranslatedQuery();
             //this is a hack, there is no way to get a handle on the parents parents configuration!!!!!
             if (queryUtility.getQueryTemplate().contains("{brokerName}")) {
-                String brokerName = ((MBeanResourceComponent) parentResourceComponent).getEmsBean().getBeanName().getKeyProperty("brokerName");
-                translatedQuery = translatedQuery.replace("{brokerName}", brokerName);
+                PropertySimple prop = (PropertySimple) findProperty("brokerName");
+                translatedQuery = translatedQuery.replace("{brokerName}", prop.getStringValue());
             }
             List<EmsBean> beans = connection.queryBeans(translatedQuery);
+
             if (log.isDebugEnabled()) {
                 log.debug("Found [" + beans.size() + "] mbeans for query [" + translatedQuery + "].");
             }
@@ -307,10 +313,13 @@ public class ArtemisMBeanDiscoveryComponent<T extends JMXComponent<?>> extends M
             if (log.isDebugEnabled()) {
                 log.debug("[" + services.size() + "] services have been added");
             }
-
         }
 
         return services;
+    }
+
+    private Property findProperty(String key) {
+        return allProps.get(key);
     }
 
     protected static String formatMessage(String messageTemplate, Map<String, String> variableValues) {
