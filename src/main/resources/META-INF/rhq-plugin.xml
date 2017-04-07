@@ -18,9 +18,9 @@
 <!-- Entities for metrics and configuration -->
 <!DOCTYPE plugin [
 
-      <!ENTITY FULL_BROKER_NAME 'Apache ActiveMQ Artemis'>
-      <!ENTITY BROKER_NAME 'ActiveMQ Artemis'>
-      <!ENTITY SHORT_BROKER_NAME 'Artemis'>
+      <!ENTITY FULL_BROKER_NAME 'AMQ-7'>
+      <!ENTITY BROKER_NAME 'AMQ-7'>
+      <!ENTITY SHORT_BROKER_NAME 'AMQ'>
       <!ENTITY destinationOpsAndMetrics '
         <operation name="getFirstMessageAsJSON" displayName="get first message" description="Returns the first message on the queue as JSON">
            <results>
@@ -335,7 +335,7 @@
 
       </plugin-configuration>
 
-      <process-scan query="process|basename|match=^java.*,arg|-Dartemis.instance|match=.*"/>
+      <process-scan query="process|basename|match=^java.*,arg|-Dartemis.instance|match=.*,arg|-Djon.id|match=amq"/>
 
       <event name="logEntry" description="an entry in a log file"/>
 

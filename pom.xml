@@ -29,6 +29,8 @@
 
    <properties>
       <rhq.version>4.12.0</rhq.version>
+      <source.version>1.6</source.version>
+      <target.version>1.6</target.version>
       <!--<validateWithPlugins>rhq-jmx-plugin,servicemix3-plugin,servicemix4-plugin,fabric-plugin</validateWithPlugins>
       <activemq-all.version>${activemq.version}</activemq-all.version>-->
    </properties>
@@ -88,7 +90,18 @@
          </resource>
       </resources>
       <plugins>
-
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+               <source>${source.version}</source>
+               <target>${target.version}</target>
+               <optimize>true</optimize>
+               <debug>true</debug>
+               <showDeprecation>true</showDeprecation>
+               <showWarnings>true</showWarnings>
+            </configuration>
+         </plugin>
          <!-- Attach Sources -->
          <plugin>
             <artifactId>maven-source-plugin</artifactId>
