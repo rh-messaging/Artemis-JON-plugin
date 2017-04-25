@@ -22,24 +22,12 @@
       <!ENTITY BROKER_NAME 'AMQ-7'>
       <!ENTITY SHORT_BROKER_NAME 'AMQ'>
       <!ENTITY destinationOpsAndMetrics '
-        <operation name="getFirstMessageAsJSON" displayName="getFirstMessageAsJSON" description="Returns the first message on the queue as JSON">
-           <results>
-              <c:simple-property name="result" displayName="message" type="string"/>
-           </results>
-        </operation>
         <operation name="listMessagesAsJSON" displayName="listMessagesAsJSON" description="List all the messages in the queue matching the given filter and returns them using JSON">
+           <parameters>
+              <c:simple-property name="filter" required="false" displayName="A message filter (can be empty)" type="string"/>
+           </parameters>
            <results>
-              <c:simple-property name="filter" displayName="A message filter (can be empty)" type="string"/>
-           </results>
-        </operation>
-        <operation name="getFirstMessageTimestamp" displayName="get first message timestamp" description="Returns the timestamp of the first message in milliseconds">
-           <results>
-              <c:simple-property name="result" displayName="timestamp" type="long" units="epoch_milliseconds"/>
-           </results>
-        </operation>
-        <operation name="getFirstMessageAge" displayName="get first message age" description="Returns the age of the first message in milliseconds">
-           <results>
-              <c:simple-property name="result" displayName="age" type="long" units="epoch_milliseconds"/>
+              <c:simple-property name="result" displayName="messages" type="string"/>
            </results>
         </operation>
         <operation name="listScheduledMessagesAsJSON" displayName="listScheduledMessagesAsJSON" description="List the messages scheduled for delivery and returns them using JSON">
@@ -50,14 +38,14 @@
         <operation name="listScheduledMessages" displayName="listScheduledMessages" description="List the messages scheduled for delivery and returns them using JSON">
            <results>
               <c:list-property name="messageList" description="List of scheduled messages">
-                 <c:map-property name="result" displayName="message"/>
+                 <c:map-property name="message" displayName="message"/>
               </c:list-property>
            </results>
         </operation>
         <operation name="listMessages" displayName="listMessages" description="List the messages in the queue">
            <results>
               <c:list-property name="messageList" description="List of messages">
-                 <c:map-property name="result" displayName="message"/>
+                 <c:map-property name="message" displayName="message"/>
               </c:list-property>
            </results>
         </operation>
@@ -85,7 +73,7 @@
         </operation>
         <operation name="removeMessage" displayName="removeMessage" description="Removes the message corresponding to the specified message ID">
            <parameters>
-              <c:simple-property name="messageID" displayName="messageI D" description="A message ID" required="true"/>
+              <c:simple-property name="messageID" displayName="message ID" description="A message ID" required="true"/>
            </parameters>
            <results>
               <c:simple-property name="result" displayName="deleted" type="boolean"/>
@@ -119,7 +107,7 @@
         </operation>
         <operation name="expireMessage" displayName="expireMessage" description="expires the message corresponding to the specified message ID">
            <parameters>
-              <c:simple-property name="messageID" displayName="messageI D" description="A message ID" required="true"/>
+              <c:simple-property name="messageID" displayName="messageID" description="A message ID" required="true"/>
            </parameters>
            <results>
               <c:simple-property name="result" displayName="expired" type="boolean"/>
@@ -127,7 +115,7 @@
         </operation>
         <operation name="retryMessage" displayName="retryMessage" description="Retry the message corresponding to the given messageID to the original queue">
            <parameters>
-              <c:simple-property name="messageID" displayName="messageI D" description="A message ID" required="true"/>
+              <c:simple-property name="messageID" displayName="message ID" description="A message ID" required="true"/>
            </parameters>
            <results>
               <c:simple-property name="result" displayName="retried" type="boolean"/>
@@ -202,7 +190,7 @@
               <c:simple-property required="false" name="selector"  displayName="A JMS message selector" description="A selector string to match, the default, no selector, means send all messages to dead letter address."/>
            </parameters>
            <results>
-              <c:simple-property name="operationResult" type="integer" description="Number of messages sent to the dead letter address."/>
+              <c:simple-property name="result" type="integer" description="Number of messages sent to the dead letter address."/>
            </results>
         </operation>
         <operation name="sendMessage" displayName="sendMessage" description="Sends a text message to a password protected address">
@@ -275,11 +263,6 @@
               <c:simple-property name="result" displayName="consumers" type="string"/>
            </results>
         </operation>
-        <operation name="isPaused" displayName="is paused" description="Returns whether the queue is paused">
-           <results>
-              <c:simple-property name="result" displayName="paused" type="boolean"/>
-           </results>
-        </operation>
         <operation name="browse" displayName="browse(filter)" description="Browse messages matching filter">
            <parameters>
               <c:simple-property required="false" name="filter" displayName="filter" type="string" description="Optional message filter"/>
@@ -334,6 +317,10 @@
         <metric property="MessagesAcknowledged" displayType="summary" displayName="messages acknowledged" description="Returns the number of messages acknowledged to this queue since it was created" measurementType="trendsup"/>
         <metric property="MessagesExpired" displayType="summary" displayName="messages expired" description="Returns the number of messages expired from this queue since it was created" measurementType="trendsup"/>
         <metric property="MessagesKilled" displayType="summary" displayName="messages killed" description="number of messages removed from this queue since it was created due to exceeding the max delivery attempts" measurementType="trendsup"/>
+        <metric property="Paused" displayType="summary" displayName="paused" description="whether the queue is paused" measurementType="dynamic"/>
+        <metric property="FirstMessageAsJSON" displayType="summary" displayName="first message" description="first message on the queue as JSON" measurementType="dynamic"/>
+        <metric property="FirstMessageAge" displayType="summary" displayName="first message age" description="age of the first message in milliseconds" measurementType="dynamic"/>
+        <metric property="FirstMessageTimestamp" displayType="summary" displayName="first message timestamp" description="timestamp of the first message in milliseconds" measurementType="dynamic"/>
 
         <resource-configuration>
            <c:group name="ArtemisCustomProperties" displayName="Queue Options">
@@ -467,7 +454,7 @@
 
    <!-- Services for &BROKER_NAME; Brokers, Connector, Topic, Queues. -->
    <service name="Broker" discovery="ArtemisMBeanDiscoveryComponent"
-            class="ArtemisResourceComponent"
+            class="ArtemisServiceComponent"
             classLoader="instance"
             description="&BROKER_NAME; Broker" createDeletePolicy="neither">
 
@@ -567,9 +554,7 @@
       <operation name="listRemoteAddresses" displayName="List Remote Addresses" description="List all remote addresses connected to HornetQ.">
          <results>
             <c:list-property name="result">
-               <c:map-property required="false" name="element">
-                  <c:simple-property type="string" name="value"/>
-               </c:map-property>
+               <c:simple-property type="string" name="value"/>
             </c:list-property>
          </results>
       </operation>
@@ -590,29 +575,27 @@
             <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
          </parameters>
          <results>
-            <c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/>
+            <c:simple-property name="result" displayName="closed" type="boolean" description="The Outcome of closing the connection."/>
          </results>
       </operation>
       <operation name="closeConsumerConnectionsForAddress" displayName="close connections for address" description="Closes all the connections of clients connected to this server which matches the specified IP address">
          <parameters>
             <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
          </parameters>
-         <results><c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/></results>
+         <results><c:simple-property name="result" displayName="closed" type="boolean" description="The Outcome of closing the connection."/></results>
       </operation>
       <operation name="closeConnectionsForUser" displayName="close connections for user" description="Closes all the connections of sessions with a matching user name">
          <parameters>
             <c:simple-property required="true" name="userName" displayName="a user name"/>
          </parameters>
          <results>
-            <c:simple-property name="operationResult" displayName="closed" type="boolean" description="The Outcome of closing the connection."/>
+            <c:simple-property name="result" displayName="closed" type="boolean" description="The Outcome of closing the connection."/>
          </results>
       </operation>
       <operation name="listConnectionIDs" displayName="List connections" description="List all the connection IDs.">
          <results>
             <c:list-property name="result">
-               <c:map-property required="false" name="element">
-                  <c:simple-property type="string" name="value"/>
-               </c:map-property>
+               <c:simple-property type="string" name="value"/>
             </c:list-property>
          </results>
       </operation>
@@ -627,6 +610,9 @@
          </results>
       </operation>
       <operation name="listConsumersAsJSON" displayName="list consumers as JSON" description="list all the consumers info as JSON">
+         <parameters>
+            <c:simple-property name="connectionID" displayName="connectionID" type="string"/>
+         </parameters>
          <results>
             <c:simple-property name="result" displayName="consumers" type="string"/>
          </results>
@@ -688,6 +674,9 @@
          <parameters>
             <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
          </parameters>
+         <results>
+            <c:simple-property name="result" displayName="roles" type="string"/>
+         </results>
       </operation>
       <operation name="addAddressSettings" displayName="add address settings" description="Add address settings for addresses matching the address">
          <parameters>
@@ -826,6 +815,9 @@
          </results>
       </operation>
       <operation name="listAddresses" displayName="List Addresses" description="List Addresses on the broker">
+         <parameters>
+            <c:simple-property name="separator" displayName="separator" description="the address separator" type="string" required="true"/>
+         </parameters>
          <results>
             <c:simple-property name="result" displayName="addresses" type="string"/>
          </results>
@@ -955,7 +947,7 @@
          </resource-configuration>
 
          <service name="Anycast Queue" discovery="ArtemisMBeanDiscoveryComponent"
-                  class="org.rhq.plugins.jmx.MBeanResourceComponent"
+                  class="org.jbosson.plugins.amq.ArtemisDestinationComponent"
                   description="&BROKER_NAME; Anycast Queue">
 
             <plugin-configuration>
