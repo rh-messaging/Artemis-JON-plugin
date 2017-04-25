@@ -21,7 +21,7 @@
 
    <groupId>org.jbosson.plugins.amq</groupId>
    <artifactId>amq7-plugin</artifactId>
-   <version>1.0.0.ER4</version>
+   <version>1.0.0.SNAPSHOT</version>
    <packaging>jar</packaging>
 
    <name>JON Plugins :: ActiveMQ Plugin</name>
