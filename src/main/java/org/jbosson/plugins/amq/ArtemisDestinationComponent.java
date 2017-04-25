@@ -16,7 +16,7 @@
 package org.jbosson.plugins.amq;
 
 import java.lang.reflect.Array;
-import java.util.SortedSet;
+import java.util.Map;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 
@@ -29,6 +29,9 @@ import org.rhq.core.domain.configuration.PropertySimple;
 import org.rhq.core.pluginapi.operation.OperationResult;
 import org.rhq.plugins.jmx.JMXComponent;
 
+import static org.jbosson.plugins.amq.InvocationUtil.fillInMapArray;
+import static org.jbosson.plugins.amq.InvocationUtil.findOperation;
+
 /**
  * Adds support for browseMessages operation
  *
@@ -37,45 +40,313 @@ import org.rhq.plugins.jmx.JMXComponent;
 public class ArtemisDestinationComponent<T extends JMXComponent<?>> extends ArtemisResourceComponent<T> {
 
     private static final String BROWSE_OPERATION = "browse";
+    private static final String LIST_MESSAGES_AS_JSON_OPERATION = "listMessagesAsJSON";
+    private static final String LIST_SCHEDULED_MESSAGES_AS_JSON_OPERATION = "listScheduledMessagesAsJSON";
+    private static final String LIST_SCHEDULED_MESSAGES_OPERATION = "listScheduledMessages";
+    private static final String LIST_MESSAGES_OPERATION = "listMessages";
+    private static final String LIST_DELIVERING_MESSAGES_AS_JSON_OPERATION = "listDeliveringMessagesAsJSON";
+    private static final String LIST_DELIVERING_MESSAGES_OPERATION = "listDeliveringMessages";
+    private static final String COUNT_MESSAGES_OPERATION = "countMessages";
+    private static final String REMOVE_MESSAGE_OPERATION = "removeMessage";
+    private static final String REMOVE_MESSAGES_OPERATION = "removeMessages";
+    private static final String EXPIRE_MESSAGES_OPERATION = "expireMessages";
+    private static final String EXPIRE_MESSAGE_OPERATION = "expireMessage";
+    private static final String RETRY_MESSAGE_OPERATION = "retryMessage";
+    private static final String MOVE_MESSAGES_OPERATION = "moveMessages";
+    private static final String MOVE_MESSAGE_OPERATION = "moveMessage";
+    private static final String SEND_MESSAGE_TO_DLA_OPERATION = "sendMessageToDeadLetterAddress";
+    private static final String SEND_MESSAGES_TO_DLA_OPERATION = "sendMessagesToDeadLetterAddress";
+    private static final String CHANGE_MESSAGE_PRIORITY_OPERATION = "changeMessagePriority";
+    private static final String CHANGE_MESSAGES_PRIORITY_OPERATION = "changeMessagesPriority";
+    private static final String LIST_MESSAGE_COUNTER_OPERATION = "listMessageCounter";
+    private static final String LIST_MESSAGE_COUNTER_AS_HTML_OPERATION = "listMessageCounterAsHTML";
+    private static final String LIST_MESSAGE_COUNTER_HISTORY_OPERATION = "listMessageCounterHistory";
+    private static final String LIST_MESSAGE_COUNTER_HISTORY_AS_HTML_OPERATION = "listMessageCounterHistoryAsHTML";
+    private static final String LIST_CONSUMERS_AS_JSON_OPERATION = "listConsumersAsJSON";
 
     @Override
     public OperationResult invokeOperation(String name, Configuration parameters, EmsBean emsBean) throws Exception {
-        // intercept the browseMessages operation
-        if (!BROWSE_OPERATION.equals(name)) {
+
+        if (BROWSE_OPERATION.equals(name)) {
+            return handleInvokeBrowse(parameters, emsBean);
+        } else if (LIST_MESSAGES_AS_JSON_OPERATION.equals(name)) {
+            return handleInvokeListMessagesAsJSON(parameters, emsBean);
+        } else if (LIST_SCHEDULED_MESSAGES_AS_JSON_OPERATION.equals(name)) {
+            return handleInvokeListScheduledMessagesAsJSON(emsBean);
+        } else if (LIST_SCHEDULED_MESSAGES_OPERATION.equals(name)) {
+            return handleInvokeListScheduledMessages(emsBean);
+        } else if (LIST_MESSAGES_OPERATION.equals(name)) {
+            return handleInvokeListMessages(emsBean);
+        } else if (LIST_DELIVERING_MESSAGES_AS_JSON_OPERATION.equals(name)) {
+            return handleInvokeListDeliveringMessagesAsJSON(emsBean);
+        } else if (LIST_DELIVERING_MESSAGES_OPERATION.equals(name)) {
+            return handleInvokeListDeliveringMessages(emsBean);
+        } else if (COUNT_MESSAGES_OPERATION.equals(name)) {
+            return handleInvokeCountMessages(parameters, emsBean);
+        } else if (REMOVE_MESSAGE_OPERATION.equals(name)) {
+            return handleInvokeRemoveMessage(parameters, emsBean);
+        } else if (REMOVE_MESSAGES_OPERATION.equals(name)) {
+            return handleInvokeRemoveMessages(parameters, emsBean);
+        } else if (EXPIRE_MESSAGES_OPERATION.equals(name)) {
+            return handleInvokeExpireMessages(parameters, emsBean);
+        } else if (EXPIRE_MESSAGE_OPERATION.equals(name)) {
+            return handleInvokeExpireMessage(parameters, emsBean);
+        } else if (RETRY_MESSAGE_OPERATION.equals(name)) {
+            return handleInvokeRetryMessage(parameters, emsBean);
+        } else if (MOVE_MESSAGES_OPERATION.equals(name)) {
+            return handleInvokeMoveMessages(parameters, emsBean);
+        } else if (MOVE_MESSAGE_OPERATION.equals(name)) {
+            return handleInvokeMoveMessage(parameters, emsBean);
+        } else if (SEND_MESSAGE_TO_DLA_OPERATION.equals(name)) {
+            return handleInvokeSendMessageToDLA(parameters, emsBean);
+        } else if (SEND_MESSAGES_TO_DLA_OPERATION.equals(name)) {
+            return handleInvokeSendMessagesToDLA(parameters, emsBean);
+        } else if (CHANGE_MESSAGE_PRIORITY_OPERATION.equals(name)) {
+            return handleInvokeChangeMessagePriority(parameters, emsBean);
+        } else if (CHANGE_MESSAGES_PRIORITY_OPERATION.equals(name)) {
+            return handleInvokeChangeMessagesPriority(parameters, emsBean);
+        } else if (LIST_MESSAGE_COUNTER_OPERATION.equals(name)) {
+            return handleInvokeListMessageCounterOperation(emsBean);
+        } else if (LIST_MESSAGE_COUNTER_AS_HTML_OPERATION.equals(name)) {
+            return handleInvokeListMessageCounterAsHTML(emsBean);
+        } else if (LIST_MESSAGE_COUNTER_HISTORY_OPERATION.equals(name)) {
+            return handleInvokeListMessageCounterHistory(emsBean);
+        } else if (LIST_MESSAGE_COUNTER_HISTORY_AS_HTML_OPERATION.equals(name)) {
+            return handleInvokeListMessageCounterHistoryAsHTML(emsBean);
+        } else if (LIST_CONSUMERS_AS_JSON_OPERATION.equals(name)) {
+            return handleInvokeListConsumersAsJSON(emsBean);
+        } else {
             return super.invokeOperation(name, parameters, emsBean);
         }
+    }
 
-        // null check for bean
-        if (emsBean == null) {
-            throw new Exception("Can not invoke operation [" + name
-                + "], as we can't connect to the MBean - is it down?");
-        }
+    private OperationResult handleInvokeListConsumersAsJSON(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_CONSUMERS_AS_JSON_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
 
+    private OperationResult handleInvokeListMessageCounterHistoryAsHTML(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_MESSAGE_COUNTER_HISTORY_AS_HTML_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeListMessageCounterHistory(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_MESSAGE_COUNTER_HISTORY_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeListMessageCounterAsHTML(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_MESSAGE_COUNTER_AS_HTML_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeListMessageCounterOperation(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_MESSAGE_COUNTER_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeChangeMessagesPriority(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, CHANGE_MESSAGES_PRIORITY_OPERATION, 2);
+        String filter = parameters.getSimpleValue("filter");
+        String priority = parameters.getSimpleValue("newPriority");
+        final Object opResult = operation.invoke(filter, Integer.valueOf(priority));
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeChangeMessagePriority(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, CHANGE_MESSAGE_PRIORITY_OPERATION, 2);
+        String mid = parameters.getSimpleValue("messageID");
+        String priority = parameters.getSimpleValue("newPriority");
+        final Object opResult = operation.invoke(Long.valueOf(mid), Integer.valueOf(priority));
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeSendMessagesToDLA(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, SEND_MESSAGES_TO_DLA_OPERATION, 1);
+        String selector = parameters.getSimpleValue("selector");
+        final Object opResult = operation.invoke(selector);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeSendMessageToDLA(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, SEND_MESSAGE_TO_DLA_OPERATION, 1);
+        String mid = parameters.getSimpleValue("messageID");
+        final Object opResult = operation.invoke(Long.valueOf(mid));
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeMoveMessage(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, MOVE_MESSAGE_OPERATION, 3);
+        String mid = parameters.getSimpleValue("messageID");
+        Long midLong = Long.valueOf(mid);
+        String otherQueue = parameters.getSimpleValue("otherQueueName");
+        String rejectDup = parameters.getSimpleValue("rejectDuplicates");
+        Boolean isRejectDup = Boolean.valueOf(rejectDup);
+
+        final Object opResult = operation.invoke(midLong, otherQueue, isRejectDup);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeMoveMessages(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, MOVE_MESSAGES_OPERATION, 4);
+        String flush = parameters.getSimpleValue("flushLimit");
+        Boolean isFlush = Boolean.valueOf(flush);
+        String selector = parameters.getSimpleValue("filter");
+        String otherQueue = parameters.getSimpleValue("otherQueueName");
+        String rejectDup = parameters.getSimpleValue("rejectDuplicates");
+        Boolean isRejectDup = Boolean.valueOf(rejectDup);
+
+        final Object opResult = operation.invoke(isFlush, selector, otherQueue, isRejectDup);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeRetryMessage(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, RETRY_MESSAGE_OPERATION, 1);
+        String mid = parameters.getSimpleValue("messageID");
+        final Object opResult = operation.invoke(mid);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeExpireMessage(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, EXPIRE_MESSAGE_OPERATION, 1);
+        String mid = parameters.getSimpleValue("messageID");
+        final Object opResult = operation.invoke(mid);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeExpireMessages(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, EXPIRE_MESSAGES_OPERATION, 1);
+        String selector = parameters.getSimpleValue("filter");
+        final Object opResult = operation.invoke(selector);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeRemoveMessages(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, REMOVE_MESSAGE_OPERATION, 2);
+        String flush = parameters.getSimpleValue("flushLimit");
+        Boolean isFlush = Boolean.valueOf(flush);
+        String selector = parameters.getSimpleValue("filter");
+        final Object opResult = operation.invoke(isFlush, selector);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeRemoveMessage(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, REMOVE_MESSAGE_OPERATION, 1);
+        String mid = parameters.getSimpleValue("messageID");
+        final Object opResult = operation.invoke(mid);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeCountMessages(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, COUNT_MESSAGES_OPERATION, 1);
+        String selector = parameters.getSimpleValue("filter");
+        final Object opResult = operation.invoke(selector);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeListDeliveringMessages(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_DELIVERING_MESSAGES_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        final PropertyList messageList = new PropertyList("messageList");
+        fillInMapArray(messageList, opResult);
+        result.getComplexResults().put(messageList);
+        return result;
+    }
+
+    private OperationResult handleInvokeListDeliveringMessagesAsJSON(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_DELIVERING_MESSAGES_AS_JSON_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeListMessages(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_MESSAGES_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        final PropertyList messageList = new PropertyList("messageList");
+        fillInMapArray(messageList, opResult);
+        result.getComplexResults().put(messageList);
+        return result;
+    }
+
+    private OperationResult handleInvokeListScheduledMessages(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_SCHEDULED_MESSAGES_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        final PropertyList messageList = new PropertyList("messageList");
+        fillInMapArray(messageList, opResult);
+        result.getComplexResults().put(messageList);
+        return result;
+    }
+
+    private OperationResult handleInvokeListScheduledMessagesAsJSON(EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_SCHEDULED_MESSAGES_AS_JSON_OPERATION, 0);
+        final Object opResult = operation.invoke();
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeListMessagesAsJSON(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_MESSAGES_AS_JSON_OPERATION, 1);
+        String selector = parameters.getSimpleValue("filter");
+        final Object opResult = operation.invoke(selector);
+        final OperationResult result = new OperationResult();
+        result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
+        return result;
+    }
+
+    private OperationResult handleInvokeBrowse(Configuration parameters, EmsBean emsBean) throws Exception {
         // get selector
-        final String selector = parameters.getSimpleValue("selector");
+        final String selector = parameters.getSimpleValue("filter");
 
         // find the operation
-        final int requiredParams = selector != null && selector.trim().isEmpty() ? 1 : 0;
-        final String returnType = new CompositeData[0].getClass().toString().substring(6);
-        final SortedSet<EmsOperation> operations = emsBean.getOperations();
-        EmsOperation browseMessagesOp = null;
-        for (EmsOperation operation : operations) {
-            if (BROWSE_OPERATION.equals(operation.getName()) &&
-                operation.getReturnType().equals(returnType) &&
-                operation.getParameters().size() == requiredParams) {
-                browseMessagesOp = operation;
-                break;
-            }
-        }
-
-        if (browseMessagesOp == null) {
-            throw new Exception("Missing operation CompositeData[] browse("
-                    + (requiredParams == 1 ? "String" : "") + ")");
-        }
+        EmsOperation browseMessagesOp = findOperation(emsBean, BROWSE_OPERATION, 1);
 
         // invoke
-        final Object opResult = requiredParams == 1 ?
-                browseMessagesOp.invoke(selector) : browseMessagesOp.invoke();
+        final Object opResult = browseMessagesOp.invoke(selector);
 
         // map result to a list of mapped values
         final PropertyList messageList = new PropertyList("messageList");
