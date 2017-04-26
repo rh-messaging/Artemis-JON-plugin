@@ -18,8 +18,8 @@
 <!-- Entities for metrics and configuration -->
 <!DOCTYPE plugin [
 
-      <!ENTITY FULL_BROKER_NAME 'AMQ-7'>
-      <!ENTITY BROKER_NAME 'AMQ-7'>
+      <!ENTITY FULL_BROKER_NAME 'Red Hat JBoss AMQ 7'>
+      <!ENTITY BROKER_NAME 'AMQ 7'>
       <!ENTITY SHORT_BROKER_NAME 'AMQ'>
       <!ENTITY destinationOpsAndMetrics '
         <operation name="listMessagesAsJSON" displayName="listMessagesAsJSON" description="List all the messages in the queue matching the given filter and returns them using JSON">
