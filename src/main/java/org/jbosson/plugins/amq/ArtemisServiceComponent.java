@@ -25,6 +25,10 @@ import org.rhq.plugins.jmx.JMXComponent;
 
 import static org.jbosson.plugins.amq.InvocationUtil.fillInArray;
 import static org.jbosson.plugins.amq.InvocationUtil.findOperation;
+import static org.jbosson.plugins.amq.InvocationUtil.toBoolean;
+import static org.jbosson.plugins.amq.InvocationUtil.toDouble;
+import static org.jbosson.plugins.amq.InvocationUtil.toInt;
+import static org.jbosson.plugins.amq.InvocationUtil.toLong;
 
 public class ArtemisServiceComponent<T extends JMXComponent<?>> extends ArtemisResourceComponent<T> {
 
@@ -49,15 +53,19 @@ public class ArtemisServiceComponent<T extends JMXComponent<?>> extends ArtemisR
    private static final String LIST_SESSIONS_OPERATION = "listSessions";
    private static final String GET_ROLES_AS_JSON_OPERATION = "getRolesAsJSON";
    private static final String GET_ADDRESS_SETTINGS_AS_JSON_OPERATION = "getAddressSettingsAsJSON";
-   private static final String GET_DIVERT_NAMES_OPERATION = "getDivertNames";
+   private static final String GET_DIVERT_NAMES_OPERATION = "listDivertNames";
    private static final String GET_CONNECTOR_SERVICES_OPERATION = "getConnectorServices";
    private static final String LIST_NETWORK_TOPOLOGY_OPERATION = "listNetworkTopology";
    private static final String GET_ADDRESS_INFO_OPERATION = "getAddressInfo";
    private static final String LIST_BINDINGS_FOR_ADDRESS_OPERATION = "listBindingsForAddress";
    private static final String LIST_ADDRESSES_OPERATION = "listAddresses";
+   private static final String ADD_ADDRESS_SETTINGS_OPERATION = "addAddressSettings";
 
    @Override
-   public OperationResult invokeOperation(String name, Configuration parameters, EmsBean emsBean) throws Exception {
+   public OperationResult invokeOperation(String opName, Configuration parameters, EmsBean emsBean) throws Exception {
+
+      //name can be in form [listConsumersAsJSON2,operation=listConsumersAsJSON]
+      String name = InvocationUtil.extractTrueOperationName(opName);
 
       if (CREATE_ADDRESS_OPERATION.equals(name)) {
          return handleCreateAddress(parameters, emsBean);
@@ -113,8 +121,49 @@ public class ArtemisServiceComponent<T extends JMXComponent<?>> extends ArtemisR
          return handleListBindingsForAddress(parameters, emsBean);
       } else if (LIST_ADDRESSES_OPERATION.equals(name)) {
          return handleListAddresses(parameters, emsBean);
+      } else if (ADD_ADDRESS_SETTINGS_OPERATION.equals(name)) {
+         return handleAddAddressSettings(parameters, emsBean);
       } else {
          return super.invokeOperation(name, parameters, emsBean);
+      }
+   }
+
+   private OperationResult handleAddAddressSettings(Configuration parameters, EmsBean emsBean) throws Exception {
+      EmsOperation operation = findOperation(emsBean, ADD_ADDRESS_SETTINGS_OPERATION, 26);
+      Object[] arguments = new Object[] { parameters.getSimpleValue("addressMatch"),
+               parameters.getSimpleValue("DLA"),
+               parameters.getSimpleValue("expiryAddress"),
+               toLong(parameters.getSimpleValue("expiryDelay")),
+               toBoolean(parameters.getSimpleValue("lastValueQueue")),
+               toInt(parameters.getSimpleValue("deliveryAttempts")),
+               toLong(parameters.getSimpleValue("maxSizeBytes")),
+               toInt(parameters.getSimpleValue("pageSizeBytes")),
+               toInt(parameters.getSimpleValue("pageMaxCacheSize")),
+               toLong(parameters.getSimpleValue("redeliveryDelay")),
+               toDouble(parameters.getSimpleValue("redeliveryMultiplier")),
+               toLong(parameters.getSimpleValue("maxRedeliveryDelay")),
+               toLong(parameters.getSimpleValue("redistributionDelay")),
+               toBoolean(parameters.getSimpleValue("sendToDLAOnNoRoute")),
+               parameters.getSimpleValue("addressFullMessagePolicy"),
+               toLong(parameters.getSimpleValue("slowConsumerThreshold")),
+               toLong(parameters.getSimpleValue("slowConsumerCheckPeriod")),
+               parameters.getSimpleValue("slowConsumerPolicy"),
+               toBoolean(parameters.getSimpleValue("autoCreateJmsQueues")),
+               toBoolean(parameters.getSimpleValue("autoDeleteJmsQueues")),
+               toBoolean(parameters.getSimpleValue("autoCreateJmsTopics")),
+               toBoolean(parameters.getSimpleValue("autoDeleteJmsTopics")),
+               toBoolean(parameters.getSimpleValue("autoCreateQueues")),
+               toBoolean(parameters.getSimpleValue("autoDeleteQueues")),
+               toBoolean(parameters.getSimpleValue("autoCreateAddresses")),
+               toBoolean(parameters.getSimpleValue("autoDeleteAddresses"))
+      };
+
+      try {
+         operation.invoke(arguments);
+         final OperationResult result = new OperationResult("result");
+         return result;
+      } catch (Exception e) {
+         throw e;
       }
    }
 
@@ -148,10 +197,8 @@ public class ArtemisServiceComponent<T extends JMXComponent<?>> extends ArtemisR
    private OperationResult handleListNetworkTopology(EmsBean emsBean) throws Exception {
       EmsOperation operation = findOperation(emsBean, LIST_NETWORK_TOPOLOGY_OPERATION, 0);
       final Object opResult = operation.invoke();
-      final OperationResult result = new OperationResult();
-      final PropertyList messageList = new PropertyList("result");
-      fillInArray(messageList, opResult);
-      result.getComplexResults().put(messageList);
+      final OperationResult result = new OperationResult("result");
+      result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
       return result;
    }
 

@@ -43,9 +43,23 @@
            </results>
         </operation>
         <operation name="listMessages" displayName="listMessages" description="List the messages in the queue">
+           <parameters>
+              <c:simple-property name="filter" displayName="filter" description="message filter" required="false"/>
+           </parameters>
            <results>
               <c:list-property name="messageList" description="List of messages">
-                 <c:map-property name="message" displayName="message"/>
+                 <c:map-property name="message" displayName="message">
+                    <c:simple-property name="messageID" type="long"/>
+                       <c:simple-property name="address" type="string" displayName="address"/>
+                       <c:simple-property name="durable" type="boolean" displayName="Is durable"/>
+                       <c:simple-property name="expiration" type="long" displayName="expiration"/>
+                       <c:simple-property name="type" type="integer" displayName="type"/>
+                       <c:simple-property name="timestamp" type="long" displayName="timestamp"/>
+                       <c:simple-property name="priority" type="integer" displayName="priority"/>
+                       <c:simple-property name="_AMQ_ROUTING_TYPE" type="integer" displayName="routing type"/>
+                       <c:simple-property name="userID" type="string" displayName="userID"/>
+                       <c:simple-property name="__AMQ_CID" type="string" displayName="connection ID"/>
+                 </c:map-property>
               </c:list-property>
            </results>
         </operation>
@@ -56,11 +70,22 @@
         </operation>
         <operation name="listDeliveringMessages" displayName="listDeliveringMessages" description="list all messages being delivered per consumer">
            <results>
-              <c:list-property name="messageList" description="List of delivering messages per consumer">
-                 <c:map-property name="consumer" displayName="consumer">
-                    <c:map-property name="messages" displayName="messages"/>
-                 </c:map-property>
-              </c:list-property>
+              <c:map-property name="consumers" description="List of delivering messages per consumer">
+                 <c:list-property name="messages" displayName="messages" description="messages in deliver">
+                    <c:map-property name="messageProp" displayName="messageProp" description="message properties">
+                       <c:simple-property name="messageID" type="long"/>
+                       <c:simple-property name="address" type="string" displayName="address"/>
+                       <c:simple-property name="durable" type="boolean" displayName="Is durable"/>
+                       <c:simple-property name="expiration" type="long" displayName="expiration"/>
+                       <c:simple-property name="type" type="integer" displayName="type"/>
+                       <c:simple-property name="timestamp" type="long" displayName="timestamp"/>
+                       <c:simple-property name="priority" type="integer" displayName="priority"/>
+                       <c:simple-property name="_AMQ_ROUTING_TYPE" type="integer" displayName="routing type"/>
+                       <c:simple-property name="userID" type="string" displayName="userID"/>
+                       <c:simple-property name="__AMQ_CID" type="string" displayName="connection ID"/>
+                    </c:map-property>
+                 </c:list-property>
+              </c:map-property>
            </results>
         </operation>
         <operation name="countMessages" displayName="countMessages" description="Returns the number of the messages in the queue matching the given filter">
@@ -73,7 +98,7 @@
         </operation>
         <operation name="removeMessage" displayName="removeMessage" description="Removes the message corresponding to the specified message ID">
            <parameters>
-              <c:simple-property name="messageID" displayName="message ID" description="A message ID" required="true"/>
+              <c:simple-property name="messageID" displayName="message ID" description="A message ID" type="long" required="true"/>
            </parameters>
            <results>
               <c:simple-property name="result" displayName="deleted" type="boolean"/>
@@ -107,7 +132,7 @@
         </operation>
         <operation name="expireMessage" displayName="expireMessage" description="expires the message corresponding to the specified message ID">
            <parameters>
-              <c:simple-property name="messageID" displayName="messageID" description="A message ID" required="true"/>
+              <c:simple-property name="messageID" displayName="messageID" description="A message ID" type="long" required="true"/>
            </parameters>
            <results>
               <c:simple-property name="result" displayName="expired" type="boolean"/>
@@ -115,7 +140,7 @@
         </operation>
         <operation name="retryMessage" displayName="retryMessage" description="Retry the message corresponding to the given messageID to the original queue">
            <parameters>
-              <c:simple-property name="messageID" displayName="message ID" description="A message ID" required="true"/>
+              <c:simple-property name="messageID" displayName="message ID" description="A message ID" type="long" required="true"/>
            </parameters>
            <results>
               <c:simple-property name="result" displayName="retried" type="boolean"/>
@@ -179,7 +204,7 @@
         </operation>
         <operation name="sendMessageToDeadLetterAddress" displayName="sendMessageToDeadLetterAddress" description="Send the message corresponding to the given messageID to this queues Dead Letter Address.">
            <parameters>
-              <c:simple-property required="true" name="messageID" displayName="The message ID" description="The message ID of the message to send to the dead letter address"/>
+              <c:simple-property required="true" name="messageID" displayName="The message ID" description="The message ID of the message to send to the dead letter address" type="long"/>
            </parameters>
            <results>
               <c:simple-property name="operationResult" type="boolean" description="Was the message sent."/>
@@ -187,7 +212,7 @@
         </operation>
         <operation name="sendMessagesToDeadLetterAddress" displayName="sendMessagesToDeadLetterAddress" description="Send the messages corresponding to the given filter to this queues Dead Letter Address.">
            <parameters>
-              <c:simple-property required="false" name="selector"  displayName="A JMS message selector" description="A selector string to match, the default, no selector, means send all messages to dead letter address."/>
+              <c:simple-property required="false" name="filter"  displayName="A JMS message selector" description="A selector string to match, the default, no selector, means send all messages to dead letter address."/>
            </parameters>
            <results>
               <c:simple-property name="result" type="integer" description="Number of messages sent to the dead letter address."/>
@@ -205,7 +230,7 @@
         </operation>
         <operation name="changeMessagePriority" displayName="changeMessagePriority" description="Changes the messages priority corresponding to the specified message ID to the specified priority">
            <parameters>
-              <c:simple-property name="messageID" displayName="message ID" description="A message ID" required="true"/>
+              <c:simple-property name="messageID" displayName="message ID" description="A message ID" type="long" required="true"/>
               <c:simple-property name="newPriority" displayName="new priority" description="the new priority (between 0 and 9)" required="true" type="integer">
                  <c:constraint>
                     <c:integer-constraint minimum="0" maximum="9"/>
@@ -580,7 +605,7 @@
       </operation>
       <operation name="closeConsumerConnectionsForAddress" displayName="close connections for address" description="Closes all the connections of clients connected to this server which matches the specified IP address">
          <parameters>
-            <c:simple-property required="true" name="ipAddress" displayName="The IP Address"/>
+            <c:simple-property required="true" name="address" displayName="a messaging address"/>
          </parameters>
          <results><c:simple-property name="result" displayName="closed" type="boolean" description="The Outcome of closing the connection."/></results>
       </operation>
@@ -617,7 +642,7 @@
             <c:simple-property name="result" displayName="consumers" type="string"/>
          </results>
       </operation>
-      <operation name="listConsumersAsJSON2,operation==listConsumersAsJSON" displayName="list consumers as JSON" description="list all the consumers for the connection info as JSON">
+      <operation name="listConsumersAsJSON2,operation=listConsumersAsJSON" displayName="list consumers as JSON" description="list all the consumers for the connection info as JSON">
          <parameters>
             <c:simple-property name="connectionID" displayName="connectionID" type="string"/>
          </parameters>
@@ -644,9 +669,7 @@
          </parameters>
          <results>
             <c:list-property name="result">
-               <c:map-property required="false" name="element">
-                  <c:simple-property type="string" name="value"/>
-               </c:map-property>
+               <c:simple-property type="string" name="value"/>
             </c:list-property>
          </results>
       </operation>
@@ -680,32 +703,32 @@
       </operation>
       <operation name="addAddressSettings" displayName="add address settings" description="Add address settings for addresses matching the address">
          <parameters>
-            <c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="true"/>
-            <c:simple-property name="DLA" displayName="send" description="the dead letter address setting" type="string" required="false"/>
-            <c:simple-property name="expiryAddress" displayName="consume" description="the expiry address setting" type="string" required="false"/>
-            <c:simple-property name="expiryDelay" displayName="create durable queues" description="the expiry delay setting" type="long" required="false"/>
-            <c:simple-property name="lastValueQueue" displayName="selete durable queues" description="are any queues created for this address a last value queue" type="string" required="false"/>
-            <c:simple-property name="deliveryAttempts" displayName="create non durable queues" description="the delivery attempts" type="integer" required="false"/>
-            <c:simple-property name="maxSizeBytes" displayName="delete non durable queues" description="the max size in bytes" type="long" required="false"/>
-            <c:simple-property name="pageSizeBytes" displayName="manage" description="the page size in bytes" type="long" required="false"/>
-            <c:simple-property name="pageMaxCacheSize" displayName="browse" description="the max number of pages in the soft memory cache" type="string" required="false"/>
-            <c:simple-property name="redeliveryDelay" displayName="create addresses" description="the redelivery delay" type="long" required="false"/>
-            <c:simple-property name="redeliveryMultiplier" displayName="delete addresses" description="the redelivery delay multiplier" type="double" required="true"/><c:simple-property name="addressMatch" displayName="address match" description="an address string to match the security settings to" type="string" required="false"/>
-            <c:simple-property name="maxRedeliveryDelay" displayName="address match" description="the maximum redelivery delay" type="long" required="false"/>
-            <c:simple-property name="redistributionDelay" displayName="address match" description="the redistribution delay" type="long" required="false"/>
-            <c:simple-property name="sendToDLAOnNoRoute" displayName="address match" description="do we send to the DLA when there is no where to route the message" type="boolean" required="false"/>
-            <c:simple-property name="addressFullMessagePolicy" displayName="address match" description="the policy to use when the address is full" type="string" required="false"/>
-            <c:simple-property name="slowConsumerThreshold" displayName="address match" description="when a consumer falls below this threshold in terms of messages consumed per second it will be considered 'slow'" type="long" required="false"/>
-            <c:simple-property name="slowConsumerCheckPeriod" displayName="address match" description="how often (in seconds) to check for slow consumers" type="long" required="false"/>
-            <c:simple-property name="slowConsumerPolicy" displayName="address match" description="the policy to use when a slow consumer is detected (PAGE,DROP,BLOCK,FAIL)" type="string" required="false"/>
-            <c:simple-property name="autoCreateJmsQueues" displayName="address match" description="allow jms queues to be created automatically" type="boolean" required="false"/>
-            <c:simple-property name="autoDeleteJmsQueues" displayName="address match" description="allow auto-created jms queues to be deleted automatically" type="boolean" required="false"/>
-            <c:simple-property name="autoCreateJmsTopics" displayName="address match" description="allow jms topics to be created automatically" type="boolean" required="true"/>
-            <c:simple-property name="autoDeleteJmsTopics" displayName="address match" description="allow auto-created jms topics to be deleted automatically" type="boolean" required="false"/>
-            <c:simple-property name="autoCreateQueues" displayName="address match" description="allow queues to be created automatically" type="boolean" required="false"/>
-            <c:simple-property name="autoDeleteQueues" displayName="address match" description="allow auto-created queues to be deleted automatically" type="boolean" required="false"/>
-            <c:simple-property name="autoCreateAddresses" displayName="address match" description="allow addresses to be created automatically" type="boolean" required="false"/>
-            <c:simple-property name="autoDeleteAddresses" displayName="address match" description="allow auto-created addresses to be deleted automatically" type="boolean" required="false"/>
+            <c:simple-property name="addressMatch" displayName="Matching address" description="an address string to match the security settings to"/>
+            <c:simple-property name="DLA" displayName="DLA" description="the dead letter address setting" required="false"/>
+            <c:simple-property name="expiryAddress" displayName="Expiry address" description="the expiry address setting" required="false"/>
+            <c:simple-property name="expiryDelay" displayName="Expiry delay" description="the expiry delay setting" type="long" required="false" default="0"/>
+            <c:simple-property name="lastValueQueue" displayName="Last value queue" description="are any queues created for this address a last value queue" type="boolean" required="false" default="false"/>
+            <c:simple-property name="deliveryAttempts" displayName="Delivery attempts" description="the delivery attempts" type="integer" required="false" default="10"/>
+            <c:simple-property name="maxSizeBytes" displayName="Max size bytes" description="the max size in bytes" type="long" required="false" default="-1"/>
+            <c:simple-property name="pageSizeBytes" displayName="Page size bytes" description="the page size in bytes" type="integer" required="false" default="10485760"/>
+            <c:simple-property name="pageMaxCacheSize" displayName="Page max cache size" description="the max number of pages in the soft memory cache" type="integer" required="false" default="5"/>
+            <c:simple-property name="redeliveryDelay" displayName="Redelivery delay" description="the redelivery delay" type="long" required="false" default="0"/>
+            <c:simple-property name="redeliveryMultiplier" displayName="Redelivery multiplier" description="the redelivery delay multiplier" type="double" required="false" default="1.0"/>
+            <c:simple-property name="maxRedeliveryDelay" displayName="Max redelivery delay" description="the maximum redelivery delay" type="long" required="false" default="0"/>
+            <c:simple-property name="redistributionDelay" displayName="Redistribution delay" description="the redistribution delay" type="long" required="false" default="-1"/>
+            <c:simple-property name="sendToDLAOnNoRoute" displayName="Send to DLA on no route" description="do we send to the DLA when there is no where to route the message" type="boolean" required="false" default="false"/>
+            <c:simple-property name="addressFullMessagePolicy" displayName="Address full policy" description="the policy to use when the address is full" required="false" default="PAGE"/>
+            <c:simple-property name="slowConsumerThreshold" displayName="Slow consumer threshold" description="when a consumer falls below this threshold in terms of messages consumed per second it will be considered 'slow'" type="long" required="false" default="-1"/>
+            <c:simple-property name="slowConsumerCheckPeriod" displayName="Slow consumer check period" description="how often (in seconds) to check for slow consumers" type="long" required="false" default="5"/>
+            <c:simple-property name="slowConsumerPolicy" displayName="Slow consumer policy" description="the policy to use when a slow consumer is detected (KILL, NOTIFY)" required="false" default="NOTIFY"/>
+            <c:simple-property name="autoCreateJmsQueues" displayName="Auto-create JMS queues" description="allow jms queues to be created automatically" type="boolean" required="false" default="true"/>
+            <c:simple-property name="autoDeleteJmsQueues" displayName="Auto-delete JMS queues" description="allow auto-created jms queues to be deleted automatically" type="boolean" required="false" default="true"/>
+            <c:simple-property name="autoCreateJmsTopics" displayName="Auto-create JMS topics" description="allow jms topics to be created automatically" type="boolean" required="false" default="true"/>
+            <c:simple-property name="autoDeleteJmsTopics" displayName="Auto-delete JMS topics" description="allow auto-created jms topics to be deleted automatically" type="boolean" required="false" default="true"/>
+            <c:simple-property name="autoCreateQueues" displayName="Auto-create queues" description="allow queues to be created automatically" type="boolean" required="false" default="true"/>
+            <c:simple-property name="autoDeleteQueues" displayName="Auto-delete queues" description="allow auto-created queues to be deleted automatically" type="boolean" required="false" default="true"/>
+            <c:simple-property name="autoCreateAddresses" displayName="Auto-create addresses" description="allow addresses to be created automatically" type="boolean" required="false" default="true"/>
+            <c:simple-property name="autoDeleteAddresses" displayName="Auto-delete addresses" description="allow auto-created addresses to be deleted automatically" type="boolean" required="false" default="true"/>
          </parameters>
       </operation>
       <operation name="removeAddressSettings" displayName="remove address settings" description="Remove address settings for an address">
@@ -721,15 +744,17 @@
             <c:simple-property name="result" displayName="address settings" type="string"/>
          </results>
       </operation>
-      <operation name="getDivertNames" displayName="list diverts" description="names of the diverts deployed on this server">
+      <operation name="listDivertNames" displayName="list diverts" description="names of the diverts deployed on this server">
          <results>
-            <c:list-property name="result" displayName="diverts"/>
+            <c:list-property name="result">
+               <c:simple-property type="string" name="divert"/>
+            </c:list-property>
          </results>
       </operation>
       <operation name="createDivert" displayName="create divert" description="create a divert">
          <parameters>
             <c:simple-property name="name" displayName="name" description="Name of the divert" type="string" required="true"/>
-            <c:simple-property name="routingName" displayName="routing name" description="Routing name of the divert" type="longString" required="true"/>
+            <c:simple-property name="routingName" displayName="routing name" description="Routing name of the divert" type="string" required="true"/>
             <c:simple-property name="address" displayName="address" description="Address to divert from" type="string" required="true"/>
             <c:simple-property name="forwardingAddress" displayName="forwarding address" description="Address to divert to" type="string" required="true"/>
             <c:simple-property name="exclusive" displayName="exclusive" description="Is the divert exclusive?" type="boolean" required="false" default="false"/>
@@ -740,7 +765,7 @@
       </operation>
       <operation name="destroyDivert" displayName="Destroy Divert" description="Destroy a Divert">
          <parameters>
-            <c:simple-property name="addressMatch" displayName="name" description="Name of the divert" type="string" required="true"/>
+            <c:simple-property name="name" displayName="name" description="Name of the divert" type="string" required="true"/>
          </parameters>
       </operation>
       <operation name="createBridge" displayName="create bridge" description="Create a Bridge">
@@ -773,7 +798,7 @@
       <operation name="createConnectorService" displayName="create connector service">
          <parameters>
             <c:simple-property name="name" displayName="name" description="name of the connector service" type="string" required="true"/>
-            <c:simple-property name="factory class" displayName="factory class" description="Class name of the connector service factory" type="string" required="true"/>
+            <c:simple-property name="factoryClass" displayName="factory class" description="Class name of the connector service factory" type="string" required="true"/>
             <c:map-property name="parameters" required="true" displayName="parameters" description="the parameters as a map for the connector"/>
          </parameters>
       </operation>
@@ -781,11 +806,6 @@
          <parameters>
             <c:simple-property name="name" displayName="name" description="Name of the service" type="string" required="true"/>
          </parameters>
-      </operation>
-      <operation name="getConnectorServices" displayName="get connector services" description="names of the connector services on this server">
-         <results>
-            <c:list-property name="result" displayName="connector services"/>
-         </results>
       </operation>
       <operation name="forceFailover" displayName="force failover" description="force the server to failover"/>
       <operation name="scaleDown" displayName="scale down" description="scale down the server to another server">
@@ -1021,11 +1041,6 @@
 
          <operation name="start" displayName="start" description="Starts the Cluster Connection"/>
          <operation name="stop" displayName="stop" description="Stops the Cluster Connection"/>
-         <operation name="getTopology" displayName="get topology" description="Topology that this Cluster Connection knows about">
-            <results>
-               <c:simple-property name="result" displayName="topology" type="string"/>
-            </results>
-         </operation>
 
          <resource-configuration>
             <c:group name="ArtemisCustomProperties" displayName="Cluster Connection Options">

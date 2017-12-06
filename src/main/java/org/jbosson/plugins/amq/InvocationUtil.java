@@ -7,6 +7,7 @@ import org.rhq.core.domain.configuration.PropertyMap;
 import org.rhq.core.domain.configuration.PropertySimple;
 
 import java.lang.reflect.Array;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 
@@ -17,7 +18,7 @@ public final class InvocationUtil {
       EmsOperation op = null;
       for (EmsOperation operation : operations) {
          if (opName.equals(operation.getName()) &&
-                 operation.getParameters().size() == args) {
+                  operation.getParameters().size() == args) {
             op = operation;
             break;
          }
@@ -29,10 +30,42 @@ public final class InvocationUtil {
       return op;
    }
 
-   public static void fillInMapArray(PropertyList messageList, Object opResult) {
-      int nMsgs = Array.getLength(opResult);
-      for (int i = 0; i < nMsgs; i++) {
+   //resolve Map<Object, Map<>[] type
+   public static void fillInMapMapArray(PropertyMap mapMapArray, Object opResult) {
 
+      Map<Object, Map[]> mapResult = (Map<Object, Map[]>) opResult;
+
+      Iterator<Object> owners = mapResult.keySet().iterator();
+      while (owners.hasNext()) {
+         Object key = owners.next();
+         Map[] mapProps = mapResult.get(key);
+
+         PropertyList listMap = new PropertyList("messages");
+
+         if (mapProps != null) {
+            for (int i = 0; i < mapProps.length; i++) {
+               Map mProp = mapProps[i];
+               if (mProp != null) {
+                  PropertyMap mMap = new PropertyMap("messageProp");
+                  Iterator mIter = mProp.keySet().iterator();
+                  while (mIter.hasNext()) {
+                     Object mKey = mIter.next();
+                     Object mValue = mProp.get(mKey);
+                     mMap.put(new PropertySimple(mKey.toString(), (mValue == null ? null : mValue.toString())));
+                  }
+                  listMap.add(mMap);
+               }
+            }
+         }
+         mapMapArray.put(listMap);
+      }
+   }
+
+   public static void fillInMapArray(PropertyList messageList, Object opResult) {
+
+      int nMsgs = Array.getLength(opResult);
+
+      for (int i = 0; i < nMsgs; i++) {
          final PropertyMap msgMap = new PropertyMap("message");
          final Map<String, Object> msgData = (Map<String, Object>) Array.get(opResult, i);
 
@@ -52,4 +85,35 @@ public final class InvocationUtil {
       }
    }
 
+   public static String extractTrueOperationName(String opValue) {
+      String opName = null;
+      //some have alternative name, e.g. listRemoteAddresses2,operation=listRemoteAddresses
+      int index = opValue.indexOf("=");
+      if (index > -1) {
+         opName = opValue.substring(index + 1).trim();
+      } else {
+         opName = opValue;
+      }
+      return opName;
+   }
+
+   public static Long toLong(String value) {
+      if (value == null) return null;
+      return Long.valueOf(value);
+   }
+
+   public static Boolean toBoolean(String value) {
+      if (value == null) return null;
+      return Boolean.valueOf(value);
+   }
+
+   public static Integer toInt(String value) {
+      if (value == null) return null;
+      return Integer.valueOf(value);
+   }
+
+   public static Double toDouble(String value) {
+      if (value == null) return null;
+      return Double.valueOf(value);
+   }
 }

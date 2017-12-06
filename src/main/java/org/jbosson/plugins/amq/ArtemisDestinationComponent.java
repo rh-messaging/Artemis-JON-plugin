@@ -16,7 +16,6 @@
 package org.jbosson.plugins.amq;
 
 import java.lang.reflect.Array;
-import java.util.Map;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 
@@ -30,6 +29,7 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 import org.rhq.plugins.jmx.JMXComponent;
 
 import static org.jbosson.plugins.amq.InvocationUtil.fillInMapArray;
+import static org.jbosson.plugins.amq.InvocationUtil.fillInMapMapArray;
 import static org.jbosson.plugins.amq.InvocationUtil.findOperation;
 
 /**
@@ -76,7 +76,7 @@ public class ArtemisDestinationComponent<T extends JMXComponent<?>> extends Arte
         } else if (LIST_SCHEDULED_MESSAGES_OPERATION.equals(name)) {
             return handleInvokeListScheduledMessages(emsBean);
         } else if (LIST_MESSAGES_OPERATION.equals(name)) {
-            return handleInvokeListMessages(emsBean);
+            return handleInvokeListMessages(parameters, emsBean);
         } else if (LIST_DELIVERING_MESSAGES_AS_JSON_OPERATION.equals(name)) {
             return handleInvokeListDeliveringMessagesAsJSON(emsBean);
         } else if (LIST_DELIVERING_MESSAGES_OPERATION.equals(name)) {
@@ -215,7 +215,7 @@ public class ArtemisDestinationComponent<T extends JMXComponent<?>> extends Arte
     private OperationResult handleInvokeMoveMessages(Configuration parameters, EmsBean emsBean) throws Exception {
         EmsOperation operation = findOperation(emsBean, MOVE_MESSAGES_OPERATION, 4);
         String flush = parameters.getSimpleValue("flushLimit");
-        Boolean isFlush = Boolean.valueOf(flush);
+        Integer isFlush = Integer.valueOf(flush);
         String selector = parameters.getSimpleValue("filter");
         String otherQueue = parameters.getSimpleValue("otherQueueName");
         String rejectDup = parameters.getSimpleValue("rejectDuplicates");
@@ -229,7 +229,8 @@ public class ArtemisDestinationComponent<T extends JMXComponent<?>> extends Arte
 
     private OperationResult handleInvokeRetryMessage(Configuration parameters, EmsBean emsBean) throws Exception {
         EmsOperation operation = findOperation(emsBean, RETRY_MESSAGE_OPERATION, 1);
-        String mid = parameters.getSimpleValue("messageID");
+        String value = parameters.getSimpleValue("messageID");
+        Long mid = Long.valueOf(value);
         final Object opResult = operation.invoke(mid);
         final OperationResult result = new OperationResult();
         result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
@@ -255,11 +256,11 @@ public class ArtemisDestinationComponent<T extends JMXComponent<?>> extends Arte
     }
 
     private OperationResult handleInvokeRemoveMessages(Configuration parameters, EmsBean emsBean) throws Exception {
-        EmsOperation operation = findOperation(emsBean, REMOVE_MESSAGE_OPERATION, 2);
+        EmsOperation operation = findOperation(emsBean, REMOVE_MESSAGES_OPERATION, 2);
         String flush = parameters.getSimpleValue("flushLimit");
-        Boolean isFlush = Boolean.valueOf(flush);
+        Integer flushLimit = Integer.valueOf(flush);
         String selector = parameters.getSimpleValue("filter");
-        final Object opResult = operation.invoke(isFlush, selector);
+        final Object opResult = operation.invoke(flushLimit, selector);
         final OperationResult result = new OperationResult();
         result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
         return result;
@@ -268,7 +269,7 @@ public class ArtemisDestinationComponent<T extends JMXComponent<?>> extends Arte
     private OperationResult handleInvokeRemoveMessage(Configuration parameters, EmsBean emsBean) throws Exception {
         EmsOperation operation = findOperation(emsBean, REMOVE_MESSAGE_OPERATION, 1);
         String mid = parameters.getSimpleValue("messageID");
-        final Object opResult = operation.invoke(mid);
+        final Object opResult = operation.invoke(Long.valueOf(mid));
         final OperationResult result = new OperationResult();
         result.getComplexResults().put(new PropertySimple("result", opResult.toString()));
         return result;
@@ -287,9 +288,9 @@ public class ArtemisDestinationComponent<T extends JMXComponent<?>> extends Arte
         EmsOperation operation = findOperation(emsBean, LIST_DELIVERING_MESSAGES_OPERATION, 0);
         final Object opResult = operation.invoke();
         final OperationResult result = new OperationResult();
-        final PropertyList messageList = new PropertyList("messageList");
-        fillInMapArray(messageList, opResult);
-        result.getComplexResults().put(messageList);
+        final PropertyMap messagesMap = new PropertyMap("consumers");
+        fillInMapMapArray(messagesMap, opResult);
+        result.getComplexResults().put(messagesMap);
         return result;
     }
 
@@ -301,9 +302,10 @@ public class ArtemisDestinationComponent<T extends JMXComponent<?>> extends Arte
         return result;
     }
 
-    private OperationResult handleInvokeListMessages(EmsBean emsBean) throws Exception {
-        EmsOperation operation = findOperation(emsBean, LIST_MESSAGES_OPERATION, 0);
-        final Object opResult = operation.invoke();
+    private OperationResult handleInvokeListMessages(Configuration parameters, EmsBean emsBean) throws Exception {
+        EmsOperation operation = findOperation(emsBean, LIST_MESSAGES_OPERATION, 1);
+        String selector = parameters.getSimpleValue("filter");
+        final Object opResult = operation.invoke(selector);
         final OperationResult result = new OperationResult();
         final PropertyList messageList = new PropertyList("messageList");
         fillInMapArray(messageList, opResult);
