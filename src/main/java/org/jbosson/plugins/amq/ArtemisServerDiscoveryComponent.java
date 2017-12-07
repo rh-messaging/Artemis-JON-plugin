@@ -386,6 +386,7 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
 
     // configure log file defined in configuration
     protected void initLogEventSourcesConfigProp(File homeDir, Configuration pluginConfiguration, ProcessInfo process) {
+
         // get log file to track
         String logPath = pluginConfiguration.getSimpleValue(LOG_FILE_PROPERTY);
         if (logPath == null) {
