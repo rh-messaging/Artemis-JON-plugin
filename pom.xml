@@ -35,8 +35,13 @@
       <artemis-version>2.0.0.amq-700013</artemis-version>
       <junit-version>4.12</junit-version>
       <rhq-core-version>4.12.0</rhq-core-version>
+      <geronimo.jms.2.spec.version>1.0-alpha-2</geronimo.jms.2.spec.version>
+
       <!--<validateWithPlugins>rhq-jmx-plugin,servicemix3-plugin,servicemix4-plugin,fabric-plugin</validateWithPlugins>
       <activemq-all.version>${activemq.version}</activemq-all.version>-->
+
+      <plugin.basedir>${project.basedir}</plugin.basedir>
+
    </properties>
 
    <dependencies>
@@ -77,10 +82,10 @@
       </dependency>
 
       <dependency>
-        <groupId>commons-logging</groupId>
-        <artifactId>commons-logging</artifactId>
-        <version>1.1</version>
-        <scope>provided</scope>
+         <groupId>org.jboss.logging</groupId>
+         <artifactId>jboss-logging</artifactId>
+         <version>3.3.0.Final</version>
+         <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -115,6 +120,39 @@
       </dependency>
 
       <dependency>
+         <groupId>org.apache.activemq</groupId>
+         <artifactId>artemis-jms-client</artifactId>
+         <version>${artemis-version}</version>
+         <scope>test</scope>
+      </dependency>
+
+      <dependency>
+         <groupId>org.apache.activemq</groupId>
+         <artifactId>artemis-server</artifactId>
+         <version>${artemis-version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.activemq</groupId>
+         <artifactId>artemis-server</artifactId>
+         <type>test-jar</type>
+         <version>${artemis-version}</version>
+         <scope>test</scope>
+      </dependency>
+
+      <dependency>
+         <groupId>commons-beanutils</groupId>
+         <artifactId>commons-beanutils</artifactId>
+         <version>1.9.2</version>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.activemq</groupId>
+         <artifactId>artemis-commons</artifactId>
+         <version>${artemis-version}</version>
+         <type>test-jar</type>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
          <groupId>junit</groupId>
          <artifactId>junit</artifactId>
          <version>${junit-version}</version>
@@ -125,6 +163,13 @@
          <groupId>org.rhq</groupId>
          <artifactId>rhq-core-client-api</artifactId>
          <version>${rhq-core-version}</version>
+         <scope>test</scope>
+      </dependency>
+
+      <dependency>
+         <groupId>org.apache.geronimo.specs</groupId>
+         <artifactId>geronimo-jms_2.0_spec</artifactId>
+         <version>${geronimo.jms.2.spec.version}</version>
          <scope>test</scope>
       </dependency>
 

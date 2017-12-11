@@ -28,11 +28,9 @@ public class OpParameter {
    private String name;
    private ConfigurationProperty type;
 
-   public OpParameter(String methodName, String name, Class<?> paramType) {
-      System.out.println("Method name: " + methodName + " name: " + name + " type: " + paramType);
+   public OpParameter(String name, Class<?> paramType) {
       this.name = name;
       this.type = createType(paramType);
-      System.out.println("real type: " + type);
    }
 
    private ConfigurationProperty createType(Class<?> paramType) {
@@ -47,7 +45,7 @@ public class OpParameter {
       return simple;
    }
 
-   private PropertyType convert(Class<?> paramType) {
+   public static PropertyType convert(Class<?> paramType) {
       if (paramType == String.class) {
          return PropertyType.STRING;
       }
