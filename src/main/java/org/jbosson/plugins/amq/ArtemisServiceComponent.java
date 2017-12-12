@@ -32,34 +32,34 @@ import static org.jbosson.plugins.amq.InvocationUtil.toLong;
 
 public class ArtemisServiceComponent<T extends JMXComponent<?>> extends ArtemisResourceComponent<T> {
 
-   private static final String CREATE_ADDRESS_OPERATION = "createAddress";
-   private static final String LIST_PREPARED_TX_OPERATION = "listPreparedTransactions";
-   private static final String LIST_PREPARED_TX_AS_JSON_OPERATION = "listPreparedTransactionDetailsAsJSON";
-   private static final String LIST_PREPARED_TX_AS_HTML_OPERATION = "listPreparedTransactionDetailsAsHTML";
-   private static final String LIST_HEURISTIC_ROLLEDBACK_TX_OPERATION = "listHeuristicRolledBackTransactions";
-   private static final String LIST_HEURISTIC_COMMITTED_TX_OPERATION = "listHeuristicCommittedTransactions";
-   private static final String COMMIT_PREPARED_TX_OPERATION = "commitPreparedTransaction";
-   private static final String ROLLBACK_PREPARED_TX_OPERATION = "rollbackPreparedTransaction";
-   private static final String LIST_REMOTE_ADDRESSES_OPERATION = "listRemoteAddresses";
-   private static final String CLOSE_CONNECTIONS_FOR_ADDRESS_OPERATION = "closeConnectionsForAddress";
-   private static final String CLOSE_CONSUMER_CONNECTIONS_FOR_ADDRESS_OPERATION = "closeConsumerConnectionsForAddress";
-   private static final String CLOSE_CONNECTIONS_FOR_USER_OPERATION = "closeConnectionsForUser";
-   private static final String LIST_CONNECTION_IDS_OPERATION = "listConnectionIDs";
-   private static final String LIST_PRODUCERS_INFO_AS_JSON_OPERATION = "listProducersInfoAsJSON";
-   private static final String LIST_CONNECTIONS_AS_JSON_OPERATION = "listConnectionsAsJSON";
-   private static final String LIST_CONSUMERS_AS_JSON_OPERATION = "listConsumersAsJSON";
-   private static final String LIST_ALL_CONSUMERS_AS_JSON_OPERATION = "listAllConsumersAsJSON";
-   private static final String LIST_SESSIONS_AS_JSON_OPERATION = "listSessionsAsJSON";
-   private static final String LIST_SESSIONS_OPERATION = "listSessions";
-   private static final String GET_ROLES_AS_JSON_OPERATION = "getRolesAsJSON";
-   private static final String GET_ADDRESS_SETTINGS_AS_JSON_OPERATION = "getAddressSettingsAsJSON";
-   private static final String GET_DIVERT_NAMES_OPERATION = "listDivertNames";
-   private static final String GET_CONNECTOR_SERVICES_OPERATION = "getConnectorServices";
-   private static final String LIST_NETWORK_TOPOLOGY_OPERATION = "listNetworkTopology";
-   private static final String GET_ADDRESS_INFO_OPERATION = "getAddressInfo";
-   private static final String LIST_BINDINGS_FOR_ADDRESS_OPERATION = "listBindingsForAddress";
-   private static final String LIST_ADDRESSES_OPERATION = "listAddresses";
-   private static final String ADD_ADDRESS_SETTINGS_OPERATION = "addAddressSettings";
+   public static final String CREATE_ADDRESS_OPERATION = "createAddress";
+   public static final String LIST_PREPARED_TX_OPERATION = "listPreparedTransactions";
+   public static final String LIST_PREPARED_TX_AS_JSON_OPERATION = "listPreparedTransactionDetailsAsJSON";
+   public static final String LIST_PREPARED_TX_AS_HTML_OPERATION = "listPreparedTransactionDetailsAsHTML";
+   public static final String LIST_HEURISTIC_ROLLEDBACK_TX_OPERATION = "listHeuristicRolledBackTransactions";
+   public static final String LIST_HEURISTIC_COMMITTED_TX_OPERATION = "listHeuristicCommittedTransactions";
+   public static final String COMMIT_PREPARED_TX_OPERATION = "commitPreparedTransaction";
+   public static final String ROLLBACK_PREPARED_TX_OPERATION = "rollbackPreparedTransaction";
+   public static final String LIST_REMOTE_ADDRESSES_OPERATION = "listRemoteAddresses";
+   public static final String CLOSE_CONNECTIONS_FOR_ADDRESS_OPERATION = "closeConnectionsForAddress";
+   public static final String CLOSE_CONSUMER_CONNECTIONS_FOR_ADDRESS_OPERATION = "closeConsumerConnectionsForAddress";
+   public static final String CLOSE_CONNECTIONS_FOR_USER_OPERATION = "closeConnectionsForUser";
+   public static final String LIST_CONNECTION_IDS_OPERATION = "listConnectionIDs";
+   public static final String LIST_PRODUCERS_INFO_AS_JSON_OPERATION = "listProducersInfoAsJSON";
+   public static final String LIST_CONNECTIONS_AS_JSON_OPERATION = "listConnectionsAsJSON";
+   public static final String LIST_CONSUMERS_AS_JSON_OPERATION = "listConsumersAsJSON";
+   public static final String LIST_ALL_CONSUMERS_AS_JSON_OPERATION = "listAllConsumersAsJSON";
+   public static final String LIST_SESSIONS_AS_JSON_OPERATION = "listSessionsAsJSON";
+   public static final String LIST_SESSIONS_OPERATION = "listSessions";
+   public static final String GET_ROLES_AS_JSON_OPERATION = "getRolesAsJSON";
+   public static final String GET_ADDRESS_SETTINGS_AS_JSON_OPERATION = "getAddressSettingsAsJSON";
+   public static final String GET_DIVERT_NAMES_OPERATION = "listDivertNames";
+   public static final String GET_CONNECTOR_SERVICES_OPERATION = "getConnectorServices";
+   public static final String LIST_NETWORK_TOPOLOGY_OPERATION = "listNetworkTopology";
+   public static final String GET_ADDRESS_INFO_OPERATION = "getAddressInfo";
+   public static final String LIST_BINDINGS_FOR_ADDRESS_OPERATION = "listBindingsForAddress";
+   public static final String LIST_ADDRESSES_OPERATION = "listAddresses";
+   public static final String ADD_ADDRESS_SETTINGS_OPERATION = "addAddressSettings";
 
    @Override
    public OperationResult invokeOperation(String opName, Configuration parameters, EmsBean emsBean) throws Exception {

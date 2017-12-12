@@ -24,18 +24,33 @@ import java.util.List;
 
 public class OperationInfo {
 
+   private String name;
    private List<OpParameter> parameters = new ArrayList<OpParameter>();
 
    public OperationInfo(Method m) {
+      this.name = m.getName();
       Class<?>[] paramTypes = m.getParameterTypes();
       Annotation[][] paramAnnotations = m.getParameterAnnotations();
       for (int i = 0; i < paramTypes.length; i++) {
          Parameter param = (Parameter) paramAnnotations[i][0];
-         parameters.add(new OpParameter(m.getName(), param.name(), paramTypes[i]));
+         parameters.add(new OpParameter(param.name(), paramTypes[i]));
+      }
+   }
+
+   public OperationInfo(String opName, Class[] types) {
+      this.name = opName;
+      if (types != null) {
+         for (int i = 0; i < types.length; i++) {
+            parameters.add(new OpParameter("", types[i]));
+         }
       }
    }
 
    public List<OpParameter> getParameters() {
       return parameters;
+   }
+
+   public String getName() {
+      return this.name;
    }
 }
