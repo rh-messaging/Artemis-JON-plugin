@@ -43,7 +43,7 @@ import java.io.File;
  */
 public class ArtemisServerComponent<T extends ResourceComponent<?>> implements JMXComponent<T> {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private static final Log log = LogFactory.getLog(ArtemisServerComponent.class);
 
     // needed to be copied from JMXServerComponent, since these are not protected, gaahhh!
     protected EmsConnection connection;
@@ -83,6 +83,8 @@ public class ArtemisServerComponent<T extends ResourceComponent<?>> implements J
         Configuration pluginConfig = context.getPluginConfiguration();
         String connectionTypeDescriptorClassName = pluginConfig.getSimple(JMXDiscoveryComponent.CONNECTION_TYPE)
             .getStringValue();
+        PluginUtil.loadPluginConfiguration(pluginConfig);
+
         if (JMXDiscoveryComponent.PARENT_TYPE.equals(connectionTypeDescriptorClassName)) {
             // Our parent is itself a JMX component, so just reuse its connection.
             this.connection = ((JMXComponent) context.getParentResourceComponent()).getEmsConnection();
@@ -97,7 +99,7 @@ public class ArtemisServerComponent<T extends ResourceComponent<?>> implements J
                 // avoid loading AttachNotSupportedException class, since its optional
                 if (e.getCause() != null &&
                     e.getCause().getClass().getName().equals(
-                        ArtemisServerDiscoveryComponent.ATTACH_NOT_SUPPORTED_EXCEPTION_CLASS_NAME)) {
+                        PluginUtil.ATTACH_NOT_SUPPORTED_EXCEPTION_CLASS_NAME)) {
 
                     // create a connection provider using JvmStatUtility
                     final Class<?> connectionTypeDescriptorClass;

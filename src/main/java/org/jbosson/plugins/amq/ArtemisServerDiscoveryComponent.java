@@ -68,15 +68,7 @@ import java.util.regex.Pattern;
  */
 public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryComponent, ManualAddFacet {
 
-    private final Log log = LogFactory.getLog(getClass());
-
-    protected static final String SYSTEM_PROPERTIES_GROUP = "systemProperties";
-    protected static final String VERSION_FILE_PROPERTY = "versionFile";
-    protected static final String RESOURCE_KEY_PROPERTY = "resourceKey";
-    protected static final String HOME_PROPERTY = "homeProperty";
-    protected static final String RECURSIVE_SEARCH_PATH = "**/";
-    protected static final String LOG_FILE_PROPERTY = "logFile";
-    public static final String ATTACH_NOT_SUPPORTED_EXCEPTION_CLASS_NAME = "com.sun.tools.attach.AttachNotSupportedException";
+    private static final Log log = LogFactory.getLog(ArtemisServerDiscoveryComponent.class);
 
     // Runtime discovery
     public final Set<DiscoveredResourceDetails> discoverResources(ResourceDiscoveryContext context) {
@@ -138,7 +130,7 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
                 final Configuration pluginConfiguration = details.getPluginConfiguration();
                 final ProcessInfo processInfo = details.getProcessInfo();
                 final String homePath = getSystemPropertyValue(processInfo,
-                      pluginConfiguration.getSimpleValue(HOME_PROPERTY));
+                      pluginConfiguration.getSimpleValue(PluginUtil.HOME_PROPERTY));
                 initLogEventSourcesConfigProp(new File(homePath), pluginConfiguration, processInfo);
 
                 resultSet.add(details);
@@ -155,7 +147,6 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
     public final DiscoveredResourceDetails discoverResource(Configuration pluginConfig,
                                                             ResourceDiscoveryContext discoveryContext)
           throws InvalidPluginConfigurationException {
-
         final String resourceTypeName = discoveryContext.getResourceType().getName();
 
         // get the user provided Connector Address
@@ -195,7 +186,7 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
 
         // get home path, either from plugin config or discovered process
         final String homePath;
-        final String homePropertyName = pluginConfig.getSimpleValue(HOME_PROPERTY);
+        final String homePropertyName = pluginConfig.getSimpleValue(PluginUtil.HOME_PROPERTY);
         if (jvmProcess == null) {
             homePath = pluginConfig.getSimpleValue(homePropertyName);
         } else {
@@ -213,7 +204,7 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
         if (details == null) {
             throw new InvalidPluginConfigurationException(
                   String.format("Version file %s could not be found in %s",
-                        pluginConfig.getSimpleValue(VERSION_FILE_PROPERTY), homePath));
+                        pluginConfig.getSimpleValue(PluginUtil.VERSION_FILE_PROPERTY), homePath));
         }
 
         // add a flag to indicate that this resource was manually added
@@ -293,7 +284,7 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
         } catch (RuntimeException e) {
             // avoid loading AttachNotSupportedException class, since its optional
             if (e.getCause() != null &&
-                  e.getCause().getClass().getName().equals(ATTACH_NOT_SUPPORTED_EXCEPTION_CLASS_NAME)) {
+                  e.getCause().getClass().getName().equals(PluginUtil.ATTACH_NOT_SUPPORTED_EXCEPTION_CLASS_NAME)) {
                 // try connecting using jvmstat
                 jmxServiceURL = JvmStatUtility.extractJMXServiceURL(process);
             } else {
@@ -303,10 +294,6 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
         }
         if (jmxServiceURL != null) {
             pluginConfig = context.getDefaultPluginConfiguration();
-            // do not use the default connector address, principal or credentials
-            pluginConfig.setSimpleValue(JMXDiscoveryComponent.CONNECTOR_ADDRESS_CONFIG_PROPERTY, null);
-            pluginConfig.setSimpleValue(JMXComponent.PRINCIPAL_CONFIG_PROP, null);
-            pluginConfig.setSimpleValue(JMXComponent.CREDENTIALS_CONFIG_PROP, null);
         } else {
             // create plugin config with JMX connection properties
             pluginConfig = getConfigWithJmxServiceUrl(context, process);
@@ -346,7 +333,7 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
 
         // find resource home directory
         final Configuration defaultConfig = context.getDefaultPluginConfiguration();
-        final String homeProperty = defaultConfig.getSimpleValue(HOME_PROPERTY);
+        final String homeProperty = defaultConfig.getSimpleValue(PluginUtil.HOME_PROPERTY);
 
         // use provided home property value or find the matching system property
         final String homePath;
@@ -363,6 +350,8 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
             throw new InvalidPluginConfigurationException(
                   String.format("Home directory %s does NOT exist", homePath));
         }
+
+        pluginConfig.setSimpleValue(homeProperty, homePath);
 
         // get resource name using resourceKey property
         final String name = String.format("%s %s", resourceKey, context.getResourceType().getName());
@@ -388,9 +377,9 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
     protected void initLogEventSourcesConfigProp(File homeDir, Configuration pluginConfiguration, ProcessInfo process) {
 
         // get log file to track
-        String logPath = pluginConfiguration.getSimpleValue(LOG_FILE_PROPERTY);
+        String logPath = pluginConfiguration.getSimpleValue(PluginUtil.LOG_FILE_PROPERTY);
         if (logPath == null) {
-            log.warn("Missing property " + LOG_FILE_PROPERTY + " in Fuse Server configuration");
+            log.warn("Missing property " + PluginUtil.LOG_FILE_PROPERTY + " in Fuse Server configuration");
             return;
         }
 
@@ -467,7 +456,7 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
     }
 
     protected String getResourceKeyProperty(Configuration pluginConfig) {
-        return pluginConfig.getSimpleValue(RESOURCE_KEY_PROPERTY);
+        return pluginConfig.getSimpleValue(PluginUtil.RESOURCE_KEY_PROPERTY);
     }
 
     protected String getSystemPropertyValue(ProcessInfo process, String systemPropertyName) {
@@ -484,7 +473,7 @@ public class ArtemisServerDiscoveryComponent implements ResourceDiscoveryCompone
 
         // verify values for system properties group if process is not set, or get them from process if set
         List<PropertyDefinition> group = details.getResourceType().getPluginConfigurationDefinition().
-              getPropertiesInGroup(SYSTEM_PROPERTIES_GROUP);
+              getPropertiesInGroup(PluginUtil.SYSTEM_PROPERTIES_GROUP);
 
         final ProcessInfo processInfo = details.getProcessInfo();
         final Configuration pluginConfiguration = details.getPluginConfiguration();

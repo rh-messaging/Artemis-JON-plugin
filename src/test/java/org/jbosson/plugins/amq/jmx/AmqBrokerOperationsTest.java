@@ -25,16 +25,6 @@ import org.rhq.core.pluginapi.operation.OperationResult;
 
 public class AmqBrokerOperationsTest extends AmqJonRuntimeTestBase {
 
-   private ArtemisServiceComponent brokerComponent;
-   private EmsBean brokerBean;
-
-   @Before
-   public void setUp() throws Exception {
-      super.setUp();
-      brokerBean = getAmQServerBean();
-      brokerComponent = new ArtemisServiceComponent();
-   }
-
    @Test
    public void testInvokingListConnectionIDs() throws Exception {
       OperationInfo op = getBrokerOperation(ArtemisServiceComponent.LIST_CONNECTION_IDS_OPERATION);
