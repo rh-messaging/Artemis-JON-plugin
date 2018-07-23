@@ -17,13 +17,23 @@ package org.jbosson.plugins.amq.jmx;
 
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.security.jaas.PropertiesLoginModuleTest;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
+import org.apache.activemq.artemis.core.server.ActiveMQServers;
+import org.apache.activemq.artemis.core.server.management.ManagementContext;
+import org.apache.activemq.artemis.core.settings.impl.AddressFullMessagePolicy;
+import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.spi.core.security.ActiveMQJAASSecurityManager;
+import org.apache.activemq.artemis.spi.core.security.ActiveMQSecurityManager;
 import org.jbosson.plugins.amq.AmqJonTestBase;
+import org.jbosson.plugins.amq.ArtemisServiceComponent;
 import org.jbosson.plugins.amq.OpParameter;
 import org.jbosson.plugins.amq.OperationInfo;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.mc4j.ems.connection.ConnectionFactory;
 import org.mc4j.ems.connection.EmsConnection;
 import org.mc4j.ems.connection.bean.EmsBean;
@@ -39,20 +49,49 @@ import org.rhq.core.clientapi.descriptor.configuration.SimpleProperty;
 import org.rhq.core.clientapi.descriptor.plugin.OperationDescriptor;
 
 import javax.jms.Connection;
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
 import javax.xml.bind.JAXBElement;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.management.ManagementFactory;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class AmqJonRuntimeTestBase extends AmqJonTestBase {
+
+   static {
+      String path = System.getProperty("java.security.auth.login.config");
+      if (path == null) {
+         URL resource = PropertiesLoginModuleTest.class.getClassLoader().getResource("login.config");
+         if (resource != null) {
+            try {
+               path = URLDecoder.decode(resource.getFile(), "UTF-8");
+               System.setProperty("java.security.auth.login.config", path);
+            } catch (UnsupportedEncodingException e) {
+               throw new RuntimeException(e);
+            }
+         }
+      }
+      System.setProperty("java.rmi.server.hostname", "localhost");
+   }
+
+   @Rule
+   public TemporaryFolder tmpTestFolder = new TemporaryFolder();
 
    protected ActiveMQServer server;
    protected MBeanServer mbeanServer;
@@ -60,14 +99,20 @@ public class AmqJonRuntimeTestBase extends AmqJonTestBase {
    protected ObjectNameBuilder objectNameBuilder;
    protected ConnectionFactory emsFactory;
    protected EmsConnection emsConnection;
+   protected ManagementContext mcontext;
 
    protected int jmxPort = 11099;
 
    protected List<Connection> connections = new ArrayList<Connection>();
    protected javax.jms.ConnectionFactory factory;
 
-   private String jmxServiceURL = null;
+   protected String jmxServiceURL = null;
    private JMXConnectorServer connectorServer = null;
+
+
+   protected ArtemisServiceComponent brokerComponent;
+   protected EmsBean brokerBean;
+   protected Registry registry;
 
    //make sure the jmx Registry only created once
    private static boolean jmxRegistryCreated = false;
@@ -78,7 +123,10 @@ public class AmqJonRuntimeTestBase extends AmqJonTestBase {
       leakCheckRule.disable();
 
       jmxServiceURL = "service:jmx:rmi://localhost/jndi/rmi://localhost:" + jmxPort + "/jmxrmi";
-      server = createServer(true, true);
+      mcontext = configureJmxAccess();
+      if (mcontext != null) mcontext.start();
+
+      server = createServerWithJaas();
       Configuration serverConfig = server.getConfiguration();
       serverConfig.setJMXManagementEnabled(true);
       serverConfig.setName(brokerName);
@@ -88,29 +136,74 @@ public class AmqJonRuntimeTestBase extends AmqJonTestBase {
       serverConfig.setLargeMessagesDirectory(dataDir + "/" + serverConfig.getLargeMessagesDirectory());
       serverConfig.setJournalDirectory(dataDir + "/" + serverConfig.getJournalDirectory());
 
-      mbeanServer = MBeanServerFactory.createMBeanServer();
+      mbeanServer = ManagementFactory.getPlatformMBeanServer();
       server.setMBeanServer(mbeanServer);
       server.start();
       factory = new ActiveMQConnectionFactory("tcp://localhost:61616");
       objectNameBuilder = server.getManagementService().getObjectNameBuilder();
-      connectJmx();
+      if (mcontext == null) connectJmx();
       System.out.println("server name: " + server.getConfiguration().getName());
 
       emsFactory = new ConnectionFactory();
+      connectEms();
+
+      brokerBean = getAmQServerBean();
+      brokerComponent = new ArtemisServiceComponent();
+   }
+
+   private ActiveMQServer createServerWithJaas() throws Exception {
+      Configuration configuration = this.createDefaultConfig(true);
+      ActiveMQSecurityManager securityManager = new ActiveMQJAASSecurityManager("activemq");
+
+      ActiveMQServer server = this.addServer(ActiveMQServers.newActiveMQServer(configuration, ManagementFactory.getPlatformMBeanServer(), securityManager, true));
+
+      AddressSettings defaultSetting = (new AddressSettings()).setPageSizeBytes(10485760L).setMaxSizeBytes(-1L).setAddressFullMessagePolicy(AddressFullMessagePolicy.PAGE);
+      server.getAddressSettingsRepository().addMatch("#", defaultSetting);
+      return server;
+   }
+
+   private void connectEms() {
       ConnectionSettings emsConnectionSettings = new ConnectionSettings();
       JSR160ConnectionTypeDescriptor descriptor = new JSR160ConnectionTypeDescriptor();
       emsConnectionSettings.initializeConnectionType(descriptor);
       emsConnectionSettings.setServerUrl(jmxServiceURL);
+      emsConnectionSettings.setPrincipal(getJmxPrincipal());
+      emsConnectionSettings.setCredentials(getJmxCredentials());
 
       ConnectionProvider provider = emsFactory.getConnectionProvider(emsConnectionSettings);
       emsConnection = provider.connect();
       emsConnection.loadSynchronous(true);
    }
 
+   protected String getJmxCredentials() {
+      return null;
+   }
+
+   protected String getJmxPrincipal() {
+      return null;
+   }
+
+   //setup and start ManagementContext
+   protected ManagementContext configureJmxAccess() throws Exception {
+      return null;
+   }
+
    @After
    public void tearDown() throws Exception {
       emsConnection.close();
-      connectorServer.stop();
+      if (connectorServer != null) {
+         connectorServer.stop();
+         connectorServer = null;
+      }
+      if (mcontext != null) {
+         mcontext.stop();
+         mcontext = null;
+      }
+      if (jmxRegistryCreated) {
+         UnicastRemoteObject.unexportObject(registry, true);
+         registry = null;
+         jmxRegistryCreated = false;
+      }
       for (Connection conn : connections) {
          try {
             conn.close();
@@ -123,18 +216,25 @@ public class AmqJonRuntimeTestBase extends AmqJonTestBase {
       super.tearDown();
    }
 
-   private void connectJmx() throws IOException {
+   private void connectJmx() throws IOException, MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
 
       if (!jmxRegistryCreated) {
-         LocateRegistry.createRegistry(jmxPort);
+         registry = LocateRegistry.createRegistry(jmxPort);
          jmxRegistryCreated = true;
       }
 
+      HashMap<String,Object> env = getJmxConnectorEnv();
+
       JMXServiceURL url = new JMXServiceURL(jmxServiceURL);
 
-      connectorServer = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbeanServer);
+      connectorServer = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbeanServer);
 
       connectorServer.start();
+
+   }
+
+   protected HashMap<String,Object> getJmxConnectorEnv() throws IOException {
+      return null;
    }
 
    protected EmsBean getAmQServerBean() throws Exception {
